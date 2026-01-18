@@ -32,15 +32,15 @@
  * 本软件受到[山东流年网络科技有限公司]及其许可人的版权保护。
  */
 
-package cn.mall.cqupt.lqy.distribution;
+package cn.mall.cqupt.engine;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DistributionApplication {
+public class EngineApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(DistributionApplication.class, args);
+        SpringApplication.run(EngineApplication.class, args);
     }
 }
