@@ -4,6 +4,8 @@ import cn.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
 import cn.mall.cqupt.merchant.admin.service.CouponTemplateService;
 import com.mall.cqupt.framework.result.Result;
 import com.mall.cqupt.framework.result.Results;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,13 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequiredArgsConstructor // 自动注入，为声明为final字段生成构造函数，不需要@Autowired
+@Tag(name = "优惠券模板管理")
 public class CouponTemplateController {
 
     private final CouponTemplateService couponTemplateService;
 
+    @Operation(summary = "商家创建优惠券模板")
     @PostMapping("/api/merchant-admin/coupon-template/save")
     public Result<Void> saveCouponTemplate(@RequestBody CouponTemplateSaveReqDTO requestParam) {
-        couponTemplateService.saveCouponTemplate(requestParam);
+        couponTemplateService.createCouponTemplate(requestParam);
         return Results.success();
     }
 
