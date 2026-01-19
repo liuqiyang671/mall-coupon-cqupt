@@ -7,18 +7,25 @@
     <groupId>cn.mall.cqupt</groupId>
     <artifactId>mall-cqupt-lqy71</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <!--    只是做一些规约的作用，所以不需要打包-->
+    <!-- 只是做一些规约的作用，所以不需要打包-->
     <packaging>pom</packaging>
     <modules>
+        <!-- 分发模块：负责按批次分发用户优惠券，可提供应用弹框推送、站内信或短信通知等 -->
         <module>distribution</module>
+        <!-- 搜索模块：提供用户优惠券搜索功能 -->
         <module>search</module>
+        <!-- 基础架构模块：仅包含公共内容，不涉及SpringBean定义 -->
         <module>framework</module>
+        <!-- 结算模块：负责用户下单时订单金额计算功能 -->
         <module>settlement</module>
+        <!-- 在企业的实际运营中，并非仅有单一的优惠券管理后台，而是普遍存在统称为“商家后台”的多功能管理平台 -->
+        <!-- 后管模块：创建优惠券、店家查看以及管理优惠券、创建优惠券发放批次 -->
         <module>merchant-admin</module>
+        <!-- 引擎模块：负责优惠券单个查看、列表查看、锁定以及核销等功能 -->
         <module>engine</module>
     </modules>
 
-    <!--项目版本控制-->
+    <!-- 项目版本控制-->
     <properties>
         <java.version>17</java.version>
         <spring-boot.version>3.0.7</spring-boot.version>
@@ -38,7 +45,7 @@
         <maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
     </properties>
 
-    <!--全局依赖，所有子模块都会自动继承-->
+    <!-- 全局依赖，所有子模块都会自动继承-->
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>

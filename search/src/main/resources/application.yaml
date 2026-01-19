@@ -1,3 +1,6 @@
 spring:
   application:
     name: mall-cqupt-lqy-search
+
+server:
+  port: 10050

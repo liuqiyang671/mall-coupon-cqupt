@@ -1,3 +1,6 @@
 spring:
   application:
-    name: mall-cqupt-lqy-merchant-admi
+    name: mall-cqupt-lqy-merchant-admin
+
+server:
+  port:  10010

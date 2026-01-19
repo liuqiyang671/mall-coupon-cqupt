@@ -1,3 +1,6 @@
 spring:
   application:
     name: mall-cqupt-lqy-settlement
+
+server:
+  port: 10030

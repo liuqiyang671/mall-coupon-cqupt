@@ -1,3 +1,6 @@
 spring:
   application:
     name: mall-cqupt-lqy-distribution
+
+server:
+  port: 10040
