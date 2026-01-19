@@ -1,6 +1,13 @@
+server:
+  port:  10010
+
 spring:
   application:
     name: mall-cqupt-lqy-merchant-admin
+  datasource:
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+    url: jdbc:shardingsphere:classpath:shardingsphere-config.yaml
 
-server:
-  port:  10010
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
