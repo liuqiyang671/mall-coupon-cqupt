@@ -32,22 +32,13 @@
  * 本软件受到[山东流年网络科技有限公司]及其许可人的版权保护。
  */
 
-package cn.mall.cqupt.merchant.admin;
+package cn.mall.cqupt.merchant.admin.dao.mapper;
 
-import org.apache.ibatis.annotations.Mapper;
-import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import cn.mall.cqupt.merchant.admin.dao.entity.CouponTemplateDO;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
- * @Description: 商家后管服务｜创建优惠券、店家查看以及管理优惠券、创建优惠券发放批次等
- * @Author: liuqiyang
+ * 优惠券模板数据库持久层
  */
-@SpringBootApplication
-@MapperScan("cn.mall.cqupt.merchant.admin.dao.mapper")
-public class MerchantAdminApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(MerchantAdminApplication.class, args);
-    }
+public interface CouponTemplateMapper extends BaseMapper<CouponTemplateDO> {
 }
