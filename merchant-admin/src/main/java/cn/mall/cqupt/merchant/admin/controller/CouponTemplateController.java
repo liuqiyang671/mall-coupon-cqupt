@@ -1,7 +1,12 @@
 package cn.mall.cqupt.merchant.admin.controller;
 
+import cn.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
 import cn.mall.cqupt.merchant.admin.service.CouponTemplateService;
+import com.mall.cqupt.framework.result.Result;
+import com.mall.cqupt.framework.result.Results;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -14,5 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class CouponTemplateController {
 
     private final CouponTemplateService couponTemplateService;
+
+    @PostMapping("/api/merchant-admin/coupon-template/save")
+    public Result<Void> saveCouponTemplate(@RequestBody CouponTemplateSaveReqDTO requestParam) {
+        couponTemplateService.saveCouponTemplate(requestParam);
+        return Results.success();
+    }
 
 }

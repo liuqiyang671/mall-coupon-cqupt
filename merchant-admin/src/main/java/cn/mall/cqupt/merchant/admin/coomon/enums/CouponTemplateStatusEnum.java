@@ -32,22 +32,27 @@
  * 本软件受到[山东流年网络科技有限公司]及其许可人的版权保护。
  */
 
-package cn.mall.cqupt.merchant.admin.service;
+package cn.mall.cqupt.merchant.admin.coomon.enums;
 
-import cn.mall.cqupt.merchant.admin.dao.entity.CouponTemplateDO;
-import cn.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
-import com.baomidou.mybatisplus.extension.service.IService;
-import org.springframework.stereotype.Service;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
- * 优惠券模板业务逻辑层
+ * 优惠券模板状态枚举
  */
-public interface CouponTemplateService extends IService<CouponTemplateDO> {
+@RequiredArgsConstructor
+public enum CouponTemplateStatusEnum {
 
     /**
-     * 新增商家优惠券模板
-     *
-     * @param requestParam 请求参数
+     * 0: 表示优惠券处于生效中的状态。
      */
-    void saveCouponTemplate(CouponTemplateSaveReqDTO requestParam);
+    ACTIVE(0),
+
+    /**
+     * 1: 表示优惠券已经结束，不可再使用。
+     */
+    ENDED(1);
+
+    @Getter
+    private final int status;
 }
