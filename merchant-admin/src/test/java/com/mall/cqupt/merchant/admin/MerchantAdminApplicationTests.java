@@ -35,7 +35,7 @@
 package com.mall.cqupt.merchant.admin;
 
 import cn.hutool.core.lang.Assert;
-import com.mall.cqupt.merchant.admin.coomon.enums.CouponTemplateStatusEnum;
+import com.mall.cqupt.merchant.admin.common.enums.CouponTemplateStatusEnum;
 import com.mall.cqupt.merchant.admin.dao.entity.CouponTemplateDO;
 import com.mall.cqupt.merchant.admin.service.CouponTemplateService;
 import com.alibaba.fastjson2.JSONObject;

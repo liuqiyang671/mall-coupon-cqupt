@@ -1,4 +1,4 @@
-package com.mall.cqupt.merchant.admin.coomon.enums;
+package com.mall.cqupt.merchant.admin.common.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

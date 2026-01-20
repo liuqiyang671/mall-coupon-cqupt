@@ -8,7 +8,7 @@ import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
 import com.mall.cqupt.merchant.admin.service.chain.MerchantAdminAbstractChainHandler;
 import org.springframework.stereotype.Component;
 
-import static com.mall.cqupt.merchant.admin.coomon.enums.ChainBizMarkEnum.MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY;
+import static com.mall.cqupt.merchant.admin.common.enums.ChainBizMarkEnum.MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY;
 
 
 /**

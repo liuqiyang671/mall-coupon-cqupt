@@ -5,8 +5,8 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 
 import com.mall.cqupt.framework.exception.ClientException;
-import com.mall.cqupt.merchant.admin.coomon.enums.DiscountTargetEnum;
-import com.mall.cqupt.merchant.admin.coomon.enums.DiscountTypeEnum;
+import com.mall.cqupt.merchant.admin.common.enums.DiscountTargetEnum;
+import com.mall.cqupt.merchant.admin.common.enums.DiscountTypeEnum;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
 import com.mall.cqupt.merchant.admin.service.chain.MerchantAdminAbstractChainHandler;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.Date;
 
-import static com.mall.cqupt.merchant.admin.coomon.enums.ChainBizMarkEnum.MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY;
+import static com.mall.cqupt.merchant.admin.common.enums.ChainBizMarkEnum.MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY;
 
 
 /**

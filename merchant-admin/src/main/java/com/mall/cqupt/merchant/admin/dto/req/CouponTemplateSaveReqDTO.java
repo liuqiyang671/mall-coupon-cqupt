@@ -55,6 +55,7 @@ public class CouponTemplateSaveReqDTO {
      * 有效期开始时间
      */
     @Schema(description = "有效期开始时间",
+            type = "string",
             example = "2026-01-08 12:00:00",
             required = true)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
@@ -64,6 +65,7 @@ public class CouponTemplateSaveReqDTO {
      * 有效期结束时间
      */
     @Schema(description = "有效期结束时间",
+            type = "string",
             example = "2027-07-08 12:00:00",
             required = true)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

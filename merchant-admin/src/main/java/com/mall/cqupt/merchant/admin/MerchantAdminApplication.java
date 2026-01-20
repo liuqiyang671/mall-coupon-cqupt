@@ -43,7 +43,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @Author: liuqiyang
  */
 @SpringBootApplication
-@MapperScan("cn.mall.cqupt.merchant.admin.dao.mapper")
+@MapperScan("com.mall.cqupt.merchant.admin.dao.mapper")
 public class MerchantAdminApplication {
 
     public static void main(String[] args) {

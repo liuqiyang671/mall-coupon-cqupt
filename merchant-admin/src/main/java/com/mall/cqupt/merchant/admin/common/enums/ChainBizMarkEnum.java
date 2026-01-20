@@ -1,4 +1,4 @@
-package com.mall.cqupt.merchant.admin.coomon.enums;
+package com.mall.cqupt.merchant.admin.common.enums;
 
 /**
  * 定义业务责任链类型枚举

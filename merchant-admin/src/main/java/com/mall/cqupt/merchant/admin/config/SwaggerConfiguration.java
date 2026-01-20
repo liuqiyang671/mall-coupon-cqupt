@@ -32,27 +32,50 @@
  * 本软件受到[山东流年网络科技有限公司]及其许可人的版权保护。
  */
 
-package com.mall.cqupt.merchant.admin.coomon.enums;
+package com.mall.cqupt.merchant.admin.config;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * 优惠券模板状态枚举
+ * 设置文档 API Swagger 配置信息，为了让 <a href="http://127.0.0.1:{server.port}{server.servlet.context-path}/doc.html" /> 中的信息看着更饱满
  */
-@RequiredArgsConstructor
-public enum CouponTemplateStatusEnum {
+@Slf4j
+@Configuration
+public class SwaggerConfiguration implements ApplicationRunner {
+
+    @Value("${server.port:8080}")
+    private String serverPort;
+    @Value("${server.servlet.context-path:}")
+    private String contextPath;
 
     /**
-     * 0: 表示优惠券处于生效中的状态。
+     * 自定义 openAPI 个性化信息
      */
-    ACTIVE(0),
+    @Bean
+    public OpenAPI openAPI() {
+        return new OpenAPI()
+                .info(new Info() // 基本信息配置
+                        .title("商家后台管理系统") // 标题
+                        .description("创建优惠券、店家查看以及管理优惠券、创建优惠券发放批次等") // 描述 Api 接口文档的基本信息
+                        .version("v1.0.0") // 版本
+                        // 设置 OpenAPI 文档的联系信息
+                        .contact(new Contact().name("QiyangLiu71").email("2335770430@qq.com"))
+                );
+    }
 
     /**
-     * 1: 表示优惠券已经结束，不可再使用。
+     * 方便大家启动项目后可以直接点击链接跳转，而不用自己到浏览器输入路径
      */
-    ENDED(1);
-
-    @Getter
-    private final int status;
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        log.info("API Document: http://127.0.0.1:{}{}/doc.html", serverPort, contextPath);
+    }
 }

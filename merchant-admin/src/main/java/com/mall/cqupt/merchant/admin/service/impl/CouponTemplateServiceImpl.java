@@ -1,7 +1,7 @@
 package com.mall.cqupt.merchant.admin.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.mall.cqupt.merchant.admin.coomon.enums.CouponTemplateStatusEnum;
+import com.mall.cqupt.merchant.admin.common.enums.CouponTemplateStatusEnum;
 import com.mall.cqupt.merchant.admin.dao.entity.CouponTemplateDO;
 import com.mall.cqupt.merchant.admin.dao.mapper.CouponTemplateMapper;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
@@ -11,7 +11,7 @@ import com.mall.cqupt.merchant.admin.service.chain.MerchantAdminChainContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import static com.mall.cqupt.merchant.admin.coomon.enums.ChainBizMarkEnum.MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY;
+import static com.mall.cqupt.merchant.admin.common.enums.ChainBizMarkEnum.MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY;
 
 @Service
 @RequiredArgsConstructor
