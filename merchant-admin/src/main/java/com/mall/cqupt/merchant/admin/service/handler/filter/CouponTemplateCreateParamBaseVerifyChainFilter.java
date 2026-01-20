@@ -8,7 +8,7 @@ import com.mall.cqupt.framework.exception.ClientException;
 import com.mall.cqupt.merchant.admin.common.enums.DiscountTargetEnum;
 import com.mall.cqupt.merchant.admin.common.enums.DiscountTypeEnum;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
-import com.mall.cqupt.merchant.admin.service.chain.MerchantAdminAbstractChainHandler;
+import com.mall.cqupt.merchant.admin.service.basics.chain.MerchantAdminAbstractChainHandler;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;

@@ -8,7 +8,7 @@ import com.mall.cqupt.merchant.admin.dao.mapper.CouponTemplateMapper;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
 import com.mall.cqupt.merchant.admin.service.CouponTemplateService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.mall.cqupt.merchant.admin.service.chain.MerchantAdminChainContext;
+import com.mall.cqupt.merchant.admin.service.basics.chain.MerchantAdminChainContext;
 import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import lombok.RequiredArgsConstructor;

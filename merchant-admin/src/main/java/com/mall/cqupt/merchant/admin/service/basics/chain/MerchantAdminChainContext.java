@@ -1,4 +1,4 @@
-package com.mall.cqupt.merchant.admin.service.chain;
+package com.mall.cqupt.merchant.admin.service.basics.chain;
 
 import com.mall.cqupt.merchant.admin.service.handler.filter.CouponTemplateCreateParamBaseVerifyChainFilter;
 import com.mall.cqupt.merchant.admin.service.handler.filter.CouponTemplateCreateParamNotNullChainFilter;

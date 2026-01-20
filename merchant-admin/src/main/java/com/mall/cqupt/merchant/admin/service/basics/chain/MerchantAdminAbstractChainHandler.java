@@ -1,4 +1,4 @@
-package com.mall.cqupt.merchant.admin.service.chain;
+package com.mall.cqupt.merchant.admin.service.basics.chain;
 
 import org.springframework.core.Ordered;
 
