@@ -32,23 +32,26 @@
  * 本软件受到[山东流年网络科技有限公司]及其许可人的版权保护。
  */
 
-package com.mall.cqupt.merchant.admin;
+package com.mall.cqupt.merchant.admin.common.log;
 
-import com.mzt.logapi.starter.annotation.EnableLogRecord;
-import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import com.mall.cqupt.merchant.admin.common.context.UserContext;
+import com.mzt.logapi.service.IParseFunction;
+import org.springframework.stereotype.Component;
 
 /**
- * @Description: 商家后管服务｜创建优惠券、店家查看以及管理优惠券、创建优惠券发放批次等
- * @Author: liuqiyang
+ * 操作日志组件解析当前登录用户信息
  */
-@SpringBootApplication
-@EnableLogRecord(tenant = "MerchantAdmin")
-@MapperScan("com.mall.cqupt.merchant.admin.dao.mapper")
-public class MerchantAdminApplication {
+@Component
+public class CurrentUserParseFunction implements IParseFunction {
 
-    public static void main(String[] args) {
-        SpringApplication.run(MerchantAdminApplication.class, args);
+    @Override
+    public String functionName() {
+        return "CURRENT_USER";
+    }
+
+    @Override
+    public String apply(Object value) {
+        return UserContext.getUsername();
     }
 }

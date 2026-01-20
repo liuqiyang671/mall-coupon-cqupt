@@ -1,5 +1,6 @@
 package com.mall.cqupt.merchant.admin.dto.req;
 
+import com.alibaba.fastjson2.JSON;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -94,4 +95,9 @@ public class CouponTemplateSaveReqDTO {
             example = "{\"termsOfUse\":10,\"maximumDiscountAmount\":3,\"explanationOfUnmetConditions\":\"3\",\"validityPeriod\":\"2024-07-09 11:37:14.92\"}",
             required = true)
     private String consumeRule;
+
+    @Override
+    public String toString() {
+        return JSON.toJSONString(this);
+    }
 }
