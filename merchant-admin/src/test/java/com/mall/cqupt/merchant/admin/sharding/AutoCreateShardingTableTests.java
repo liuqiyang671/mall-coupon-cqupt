@@ -10,7 +10,7 @@ public class AutoCreateShardingTableTests {
     private final String table = "CREATE TABLE `t_coupon_template_%d` (\n" +
             "  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',\n" +
             "  `name` varchar(256) DEFAULT NULL COMMENT '优惠券名称',\n" +
-            "  `shop_number` varchar(64) DEFAULT NULL COMMENT '店铺编号',\n" +
+            "  `shop_number` bigint(20) DEFAULT NULL COMMENT '店铺编号',\n" +
             "  `source` tinyint(1) DEFAULT NULL COMMENT '优惠券来源 0：店铺券 1：平台券',\n" +
             "  `target` tinyint(1) DEFAULT NULL COMMENT '优惠对象 0：商品专属 1：全店通用',\n" +
             "  `goods` text COMMENT '优惠商品编码',\n" +
@@ -24,8 +24,9 @@ public class AutoCreateShardingTableTests {
             "  `create_time` datetime DEFAULT NULL COMMENT '创建时间',\n" +
             "  `update_time` datetime DEFAULT NULL COMMENT '修改时间',\n" +
             "  `del_flag` tinyint(1) DEFAULT NULL COMMENT '删除标识 0：未删除 1：已删除',\n" +
-            "  PRIMARY KEY (`id`)\n" +
-            ") ENGINE=InnoDB AUTO_INCREMENT=1810714710190903299 DEFAULT CHARSET=utf8mb4 COMMENT='优惠券模板表';";
+            "  PRIMARY KEY (`id`),\n" +
+            "  KEY `idx_shop_number` (`shop_number`) USING BTREE\n" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='优惠券模板表';";
 
     @Test
     public void autoCreateConponTemplateShardingTable() {
