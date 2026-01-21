@@ -28,7 +28,7 @@ public class CouponTemplateLogDO {
     /**
      * 店铺编号
      */
-    private String shopNumber;
+    private Long shopNumber;
 
     /**
      * 优惠券模板ID

@@ -28,7 +28,7 @@ public class CouponTemplateDO {
     /**
      * 店铺编号
      */
-    private String shopNumber;
+    private Long shopNumber;
 
     /**
      * 优惠券名称
