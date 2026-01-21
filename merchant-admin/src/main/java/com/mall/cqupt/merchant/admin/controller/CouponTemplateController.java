@@ -1,5 +1,6 @@
 package com.mall.cqupt.merchant.admin.controller;
 
+import com.mall.cqupt.framework.idempotent.NoRepeatSubmit;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
 import com.mall.cqupt.merchant.admin.service.CouponTemplateService;
 import com.mall.cqupt.framework.result.Result;
@@ -24,6 +25,7 @@ public class CouponTemplateController {
     private final CouponTemplateService couponTemplateService;
 
     @Operation(summary = "商家创建优惠券模板")
+    @NoRepeatSubmit(message = "请勿短时间内重复提交优惠券模板")
     @PostMapping("/api/merchant-admin/coupon-template/save")
     public Result<Void> saveCouponTemplate(@RequestBody CouponTemplateSaveReqDTO requestParam) {
         couponTemplateService.createCouponTemplate(requestParam);
