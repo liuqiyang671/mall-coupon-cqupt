@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 
 import com.mall.cqupt.merchant.admin.common.enums.DiscountTargetEnum;
 import com.mall.cqupt.merchant.admin.common.enums.DiscountTypeEnum;
+import com.mzt.logapi.service.IParseFunction;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
