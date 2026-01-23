@@ -33,15 +33,6 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     private final MerchantAdminChainContext merchantAdminChainContext;
 
-//    @Override
-//    public void createCouponTemplate(CouponTemplateSaveReqDTO requestParam) {
-//        // 通过责任链验证请求参数是否正确
-//        merchantAdminChainContext.handler(MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY.name(), requestParam);
-//        CouponTemplateDO couponTemplateDO = BeanUtil.toBean(requestParam, CouponTemplateDO.class);
-//        couponTemplateDO.setStatus(CouponTemplateStatusEnum.ACTIVE.getStatus());
-//        couponTemplateMapper.insert(couponTemplateDO);
-//    }
-
     @LogRecord(
             success = COUPON_TEMPLATE_LOG_CONTENT,
             type = "CouponTemplate",
