@@ -1,11 +1,17 @@
 package com.mall.cqupt.merchant.admin.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.mall.cqupt.merchant.admin.common.context.UserContext;
 import com.mall.cqupt.merchant.admin.common.enums.CouponTemplateStatusEnum;
 import com.mall.cqupt.merchant.admin.dao.entity.CouponTemplateDO;
 import com.mall.cqupt.merchant.admin.dao.mapper.CouponTemplateMapper;
+import com.mall.cqupt.merchant.admin.dto.req.CouponTemplatePageQueryReqDTO;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
+import com.mall.cqupt.merchant.admin.dto.resp.CouponTemplatePageQueryRespDTO;
 import com.mall.cqupt.merchant.admin.service.CouponTemplateService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mall.cqupt.merchant.admin.service.basics.chain.MerchantAdminChainContext;
@@ -14,6 +20,9 @@ import com.mzt.logapi.starter.annotation.LogRecord;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
+import static com.mall.cqupt.merchant.admin.common.constant.CouponTemplateConstant.COUPON_TEMPLATE_LOG_CONTENT;
 import static com.mall.cqupt.merchant.admin.common.enums.ChainBizMarkEnum.MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY;
 
 @Service
@@ -34,15 +43,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 //    }
 
     @LogRecord(
-            success = "{CURRENT_USER{''}} 用户创建优惠券：{{#requestParam.name}}，" +
-                    "优惠对象：{COMMON_ENUM_PARSE{'DiscountTargetEnum' + '_' + #requestParam.target}}，" +
-                    "优惠类型：{COMMON_ENUM_PARSE{'DiscountTypeEnum' + '_' + #requestParam.type}}，" +
-                    "库存数量：{{#requestParam.stock}}，" +
-                    "优惠商品编码：{{#requestParam.goods}}，" +
-                    "有效期开始时间：{{#requestParam.validStartTime}}，" +
-                    "有效期结束时间：{{#requestParam.validEndTime}}，" +
-                    "领取规则：{{#requestParam.receiveRule}}，" +
-                    "消耗规则：{{#requestParam.consumeRule}}，",
+            success = COUPON_TEMPLATE_LOG_CONTENT,
             type = "CouponTemplate",
             bizNo = "{{#bizNo}}",
             extra = "{{#requestParam.toString()}}"
@@ -62,4 +63,20 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         LogRecordContext.putVariable("bizNo", couponTemplateDO.getId());
     }
 
+    @Override
+    public IPage<CouponTemplatePageQueryRespDTO> pageQueryCouponTemplate(CouponTemplatePageQueryReqDTO requestParam) {
+        // 构建分页查询模板 LambdaQueryWrapper
+        LambdaQueryWrapper<CouponTemplateDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateDO.class)
+                .eq(CouponTemplateDO::getShopNumber, UserContext.getShopNumber())
+                .like(StrUtil.isNotBlank(requestParam.getName()), CouponTemplateDO::getName, requestParam.getName())
+                .like(StrUtil.isNotBlank(requestParam.getGoods()), CouponTemplateDO::getGoods, requestParam.getGoods())
+                .eq(Objects.nonNull(requestParam.getType()), CouponTemplateDO::getType, requestParam.getType())
+                .eq(Objects.nonNull(requestParam.getTarget()), CouponTemplateDO::getTarget, requestParam.getTarget());
+
+        // MyBatis-Plus 分页查询优惠券模板信息
+        IPage<CouponTemplateDO> selectPage = couponTemplateMapper.selectPage(requestParam, queryWrapper);
+
+        // 转换数据库持久层对象为优惠券模板返回参数
+        return selectPage.convert(each -> BeanUtil.toBean(each, CouponTemplatePageQueryRespDTO.class));
+    }
 }
