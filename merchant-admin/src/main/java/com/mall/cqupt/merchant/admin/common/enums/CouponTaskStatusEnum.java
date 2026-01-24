@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
  * 优惠券推送任务状态枚举
  */
 @RequiredArgsConstructor
-public enum CouponTaskStatus {
+public enum CouponTaskStatusEnum {
 
     /**
      * 待执行
