@@ -26,6 +26,11 @@ public class CouponTaskDO {
     private Long id;
 
     /**
+     * 店铺编号
+     */
+    private Long shopNumber;
+
+    /**
      * 批次id
      */
     private Long batchId;
