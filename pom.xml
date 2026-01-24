@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.mall.cqupt</groupId>
-    <artifactId>mall-cqupt-lqy71</artifactId>
+    <artifactId>mall-cqupt-lqy11</artifactId>
     <version>1.0-SNAPSHOT</version>
     <!-- 只是做一些规约的作用，所以不需要打包-->
     <packaging>pom</packaging>
