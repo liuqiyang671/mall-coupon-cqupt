@@ -1,6 +1,22 @@
+server:
+  port: 10040
+
 spring:
   application:
     name: mall-cqupt-lqy-distribution
+  datasource:
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+    url: jdbc:shardingsphere:classpath:shardingsphere-config.yaml
+  data:
+    redis:
+      host: 43.139.79.212
+      port: 6379
+      password: Lqy259931
 
-server:
-  port: 10040
+rocketmq:
+  name-server: common-rocketmq-dev.magestack.cn:9876
+  producer:
+    group: oneCoupon_distribution${unique-name:}-service_common-message-execute_pg
+    send-message-timeout: 2000
+    retry-times-when-send-failed: 1
+    retry-times-when-send-async-failed: 1
