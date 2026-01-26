@@ -1,5 +1,6 @@
 package com.mall.cqupt.engine;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -8,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @Author: liuqiyang
  */
 @SpringBootApplication
+@MapperScan("com.mall.cqupt.engine.dao.mapper")
 public class EngineApplication {
 
     public static void main(String[] args) {
