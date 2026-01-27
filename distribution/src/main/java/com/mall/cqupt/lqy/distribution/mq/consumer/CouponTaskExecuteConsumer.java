@@ -2,7 +2,7 @@ package com.mall.cqupt.lqy.distribution.mq.consumer;
 
 import com.alibaba.fastjson2.JSON;
 
-import com.mall.cqupt.lqy.distribution.constant.DistributionRocketMQConstant;
+import com.mall.cqupt.lqy.distribution.common.constant.DistributionRocketMQConstant;
 import com.mall.cqupt.lqy.distribution.mq.base.MessageWrapper;
 import com.mall.cqupt.lqy.distribution.mq.event.CouponTaskExecuteEvent;
 import lombok.RequiredArgsConstructor;

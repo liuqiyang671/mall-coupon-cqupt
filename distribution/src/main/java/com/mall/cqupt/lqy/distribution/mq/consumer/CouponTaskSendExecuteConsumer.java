@@ -2,7 +2,7 @@ package com.mall.cqupt.lqy.distribution.mq.consumer;
 
 import com.alibaba.fastjson2.JSON;
 
-import com.mall.cqupt.lqy.distribution.constant.MerchantAdminRocketMQConstant;
+import com.mall.cqupt.lqy.distribution.common.constant.MerchantAdminRocketMQConstant;
 import com.mall.cqupt.lqy.distribution.mq.base.MessageWrapper;
 import com.mall.cqupt.lqy.distribution.mq.event.CouponTaskDelayEvent;
 import com.mall.cqupt.lqy.distribution.mq.event.CouponTaskExecuteEvent;

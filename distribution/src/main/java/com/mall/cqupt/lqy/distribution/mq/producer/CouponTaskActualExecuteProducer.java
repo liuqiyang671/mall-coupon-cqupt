@@ -1,7 +1,7 @@
 package com.mall.cqupt.lqy.distribution.mq.producer;
 
 import cn.hutool.core.util.StrUtil;
-import com.mall.cqupt.lqy.distribution.constant.DistributionRocketMQConstant;
+import com.mall.cqupt.lqy.distribution.common.constant.DistributionRocketMQConstant;
 import com.mall.cqupt.lqy.distribution.mq.base.BaseSendExtendDTO;
 import com.mall.cqupt.lqy.distribution.mq.base.MessageWrapper;
 import com.mall.cqupt.lqy.distribution.mq.event.CouponTaskExecuteEvent;

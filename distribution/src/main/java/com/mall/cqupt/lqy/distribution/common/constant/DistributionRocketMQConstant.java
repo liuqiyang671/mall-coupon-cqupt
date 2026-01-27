@@ -1,4 +1,4 @@
-package com.mall.cqupt.lqy.distribution.constant;
+package com.mall.cqupt.lqy.distribution.common.constant;
 
 /**
  * 分发优惠券服务 RocketMQ 常量类
