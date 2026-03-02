@@ -19,10 +19,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @RocketMQMessageListener(
-        topic = MerchantAdminRocketMQConstant.TEMPLATE_TASK_DELAY_TOPIC_KEY,
-        consumerGroup = MerchantAdminRocketMQConstant.TEMPLATE_TASK_DELAY_STATUS_CG_KEY
+        topic = MerchantAdminRocketMQConstant.TEMPLATE_TASK_DELAY_TOPIC_KEY,   // 订阅的话题，即从哪个“频道”拿消息。
+        consumerGroup = MerchantAdminRocketMQConstant.TEMPLATE_TASK_DELAY_STATUS_CG_KEY  //消费者组，同一组内的消费者共同分担该 Topic 的消息。
 )
-@Slf4j(topic = "CouponTaskDelayExecuteStatusConsumer")
+@Slf4j(topic = "CouponTaskDelayExecuteStatusConsumer") //通过 topic 参数指定了日志名称，方便在日志文件中进行过滤检索。
 public class CouponTaskDelayExecuteStatusConsumer implements RocketMQListener<MessageWrapper<CouponTaskDelayEvent>> {
 
     private final CouponTaskService couponTaskService;

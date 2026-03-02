@@ -25,15 +25,24 @@ import java.util.List;
 public class CouponTaskJobHandler extends IJobHandler {
 
     private final CouponTaskMapper couponTaskMapper;
+    /**
+     * 优惠券任务延迟执行消息生产者
+     * 负责将优惠券任务转换为消息事件发送到消息队列
+     */
     private final CouponTaskDelayExecuteProducer couponTaskDelayExecuteProducer;
-
+    /**
+     * 单次查询最大限制数量
+     * 控制每次批量处理的数据量，避免内存溢出和数据库压力过大
+     */
     private static final int MAX_LIMIT = 100;
 
     @XxlJob(value = "couponTemplateTask")
     public void execute() throws Exception {
+        // 初始化游标ID和当前时间
         long initId = 0;
         Date now = new Date();
 
+        // 滚动查询循环，直到没有更多待处理任务
         while (true) {
             List<CouponTaskDO> couponTaskDOList = fetchPendingTasks(initId, now);
 
