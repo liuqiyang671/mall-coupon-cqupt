@@ -16,6 +16,7 @@ import com.mall.cqupt.lqy.distribution.dao.mapper.UserCouponMapper;
 import com.mall.cqupt.lqy.distribution.mq.base.MessageWrapper;
 import com.mall.cqupt.lqy.distribution.mq.event.CouponTemplateExecuteEvent;
 import com.mall.cqupt.lqy.distribution.remote.dto.resp.CouponTemplateQueryRemoteRespDTO;
+import com.mall.cqupt.lqy.distribution.toolkit.StockDecrementReturnCombinedUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.executor.BatchExecutorException;
@@ -104,7 +105,7 @@ public class CouponExecuteDistributionConsumer implements RocketMQListener<Messa
                 userCouponDOList.add(userCouponDO);
             }
 
-            // 批量新增用户优惠券记录，底层通过递归方式直到全部新增成功
+            // 平台优惠券每个用户限领一次。批量新增用户优惠券记录，底层通过递归方式直到全部新增成功
             batchSaveUserCouponList(Long.parseLong(event.getCouponTemplate().getId()), userCouponDOList);
         }
     }
@@ -122,8 +123,8 @@ public class CouponExecuteDistributionConsumer implements RocketMQListener<Messa
                         .eq(UserCouponDO::getReceiveCount, 1);
                 List<UserCouponDO> existentuserCouponDOList = userCouponMapper.selectList(queryWrapper);
                 // 遍历已经存在的集合，获取 userId，并从需要新增的集合中移除匹配的元素
-                for (UserCouponDO a : existentuserCouponDOList) {
-                    Long userId = a.getUserId();
+                for (UserCouponDO each : existentuserCouponDOList) {
+                    Long userId = each.getUserId();
 
                     // 使用迭代器遍历需要新增的集合，安全移除元素
                     Iterator<UserCouponDO> iterator = userCouponDOList.iterator();
