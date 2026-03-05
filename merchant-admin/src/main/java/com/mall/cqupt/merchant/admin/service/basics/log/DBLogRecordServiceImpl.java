@@ -1,5 +1,6 @@
 package com.mall.cqupt.merchant.admin.service.basics.log;
 
+import cn.hutool.core.util.StrUtil;
 import com.mall.cqupt.merchant.admin.common.context.UserContext;
 import com.mall.cqupt.merchant.admin.dao.entity.CouponTemplateLogDO;
 import com.mall.cqupt.merchant.admin.dao.mapper.CouponTemplateLogMapper;
@@ -34,7 +35,7 @@ public class DBLogRecordServiceImpl implements ILogRecordService {
                             .operatorId(UserContext.getUserId())
                             .operationLog(logRecord.getAction())
                             .originalData(Optional.ofNullable(LogRecordContext.getVariable("originalData")).map(Object::toString).orElse(null))
-                            .modifiedData(logRecord.getExtra())
+                            .modifiedData(StrUtil.isBlank(logRecord.getExtra()) ? null : logRecord.getExtra())
                             .build();
                     couponTemplateLogMapper.insert(couponTemplateLogDO);
                 }

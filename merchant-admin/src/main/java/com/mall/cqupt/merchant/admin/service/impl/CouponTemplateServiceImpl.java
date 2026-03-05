@@ -3,6 +3,7 @@ package com.mall.cqupt.merchant.admin.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -33,7 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.mall.cqupt.merchant.admin.common.constant.CouponTemplateConstant.COUPON_TEMPLATE_LOG_CONTENT;
+import static com.mall.cqupt.merchant.admin.common.constant.CouponTemplateConstant.*;
 import static com.mall.cqupt.merchant.admin.common.enums.ChainBizMarkEnum.MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY;
 
 @Service
@@ -47,7 +48,7 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     private final StringRedisTemplate stringRedisTemplate;
 
     @LogRecord(
-            success = COUPON_TEMPLATE_LOG_CONTENT,
+            success = CREATE_COUPON_TEMPLATE_LOG_CONTENT,
             type = "CouponTemplate",
             bizNo = "{{#bizNo}}",
             extra = "{{#requestParam.toString()}}"
@@ -110,6 +111,11 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         return selectPage.convert(each -> BeanUtil.toBean(each, CouponTemplatePageQueryRespDTO.class));
     }
 
+    @LogRecord(
+            success = TERMINATE_COUPON_TEMPLATE_LOG_CONTENT,
+            type = "CouponTemplate",
+            bizNo = "{{#couponTemplateId}}"
+    )
     @Override
     public void terminateCouponTemplate(String couponTemplateId) {
         // 验证是否存在数据横向越权
@@ -127,6 +133,9 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
             throw new ClientException("优惠券模板已结束");
         }
 
+        // 记录优惠券模板修改前数据
+        LogRecordContext.putVariable("originalData", JSON.toJSONString(couponTemplateDO));
+
         // 修改优惠券模板为结束状态
         CouponTemplateDO updateCouponTemplateDO = CouponTemplateDO.builder()
                 .status(CouponTemplateStatusEnum.ENDED.getStatus())
@@ -141,6 +150,11 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         stringRedisTemplate.opsForHash().put(couponTemplateCacheKey, "status", String.valueOf(CouponTemplateStatusEnum.ENDED.getStatus()));
     }
 
+    @LogRecord(
+            success = INCREASE_NUMBER_COUPON_TEMPLATE_LOG_CONTENT,
+            type = "CouponTemplate",
+            bizNo = "{{#requestParam.couponTemplateId}}"
+    )
     @Override
     public void increaseNumberCouponTemplate(CouponTemplateNumberReqDTO requestParam) {
         // 验证是否存在数据横向越权
@@ -157,6 +171,9 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         if (ObjectUtil.notEqual(couponTemplateDO.getStatus(), CouponTemplateStatusEnum.ACTIVE.getStatus())) {
             throw new ClientException("优惠券模板已结束");
         }
+
+        // 记录优惠券模板修改前数据
+        LogRecordContext.putVariable("originalData", JSON.toJSONString(couponTemplateDO));
 
         // 设置数据库优惠券模板增加库存发行量
         int increased = couponTemplateMapper.increaseNumberCouponTemplate(UserContext.getShopNumber(), requestParam.getCouponTemplateId(), requestParam.getNumber());
