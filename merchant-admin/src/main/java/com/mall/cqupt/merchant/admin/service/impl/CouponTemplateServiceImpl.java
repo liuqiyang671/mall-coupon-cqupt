@@ -1,14 +1,20 @@
 package com.mall.cqupt.merchant.admin.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
+import com.mall.cqupt.framework.exception.ClientException;
+import com.mall.cqupt.framework.exception.ServiceException;
+import com.mall.cqupt.merchant.admin.common.constant.MerchantAdminRedisConstant;
 import com.mall.cqupt.merchant.admin.common.context.UserContext;
 import com.mall.cqupt.merchant.admin.common.enums.CouponTemplateStatusEnum;
 import com.mall.cqupt.merchant.admin.dao.entity.CouponTemplateDO;
 import com.mall.cqupt.merchant.admin.dao.mapper.CouponTemplateMapper;
+import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateNumberReqDTO;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplatePageQueryReqDTO;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
 import com.mall.cqupt.merchant.admin.dto.resp.CouponTemplatePageQueryRespDTO;
@@ -18,6 +24,7 @@ import com.mall.cqupt.merchant.admin.service.basics.chain.MerchantAdminChainCont
 import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -32,6 +39,8 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     private final CouponTemplateMapper couponTemplateMapper;
 
     private final MerchantAdminChainContext merchantAdminChainContext;
+
+    private final StringRedisTemplate stringRedisTemplate;
 
     @LogRecord(
             success = COUPON_TEMPLATE_LOG_CONTENT,
@@ -69,5 +78,33 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
         // 转换数据库持久层对象为优惠券模板返回参数
         return selectPage.convert(each -> BeanUtil.toBean(each, CouponTemplatePageQueryRespDTO.class));
+    }
+
+    @Override
+    public void increaseNumberCouponTemplate(CouponTemplateNumberReqDTO requestParam) {
+        // 验证是否存在数据横向越权
+        LambdaQueryWrapper<CouponTemplateDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateDO.class)
+                .eq(CouponTemplateDO::getShopNumber, UserContext.getShopNumber())
+                .eq(CouponTemplateDO::getId, requestParam.getCouponTemplateId());
+        CouponTemplateDO couponTemplateDO = couponTemplateMapper.selectOne(queryWrapper);
+        if (couponTemplateDO == null) {
+            // 一旦查询优惠券不存在，基本可判定横向越权，可上报该异常行为，次数多了后执行封号等处理
+            throw new ClientException("优惠券模板异常，请检查操作是否正确...");
+        }
+
+        // 验证优惠券模板是否正常
+        if (ObjectUtil.notEqual(couponTemplateDO.getStatus(), CouponTemplateStatusEnum.ACTIVE.getStatus())) {
+            throw new ClientException("优惠券模板已结束");
+        }
+
+        // 设置数据库优惠券模板增加库存发行量
+        int increased = couponTemplateMapper.increaseNumberCouponTemplate(UserContext.getShopNumber(), requestParam.getCouponTemplateId(), requestParam.getNumber());
+        if (!SqlHelper.retBool(increased)) {
+            throw new ServiceException("优惠券模板增加发行量失败");
+        }
+
+        // 增加优惠券模板缓存库存发行量
+        String couponTemplateCacheKey = String.format(MerchantAdminRedisConstant.COUPON_TEMPLATE_KEY, requestParam.getCouponTemplateId());
+        stringRedisTemplate.opsForHash().increment(couponTemplateCacheKey, "stock", requestParam.getNumber());
     }
 }

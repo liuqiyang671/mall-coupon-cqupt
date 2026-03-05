@@ -13,6 +13,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * 用户相关配置类
+ * 通过 Spring MVC 拦截器结合 ThreadLocal，在请求到达业务层前统一注入并维护当前登录用户的信息，执行完后清除用户信息
  */
 @Configuration
 public class UserConfiguration implements WebMvcConfigurer {

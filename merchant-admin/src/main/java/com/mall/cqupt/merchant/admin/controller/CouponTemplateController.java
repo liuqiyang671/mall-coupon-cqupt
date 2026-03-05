@@ -2,6 +2,7 @@ package com.mall.cqupt.merchant.admin.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.mall.cqupt.framework.idempotent.NoRepeatSubmit;
+import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateNumberReqDTO;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplatePageQueryReqDTO;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
 import com.mall.cqupt.merchant.admin.dto.resp.CouponTemplatePageQueryRespDTO;
@@ -42,4 +43,11 @@ public class CouponTemplateController {
         return Results.success(couponTemplateService.pageQueryCouponTemplate(requestParam));
     }
 
+    @Operation(summary = "增加优惠券模板发行量")
+    @NoRepeatSubmit(message = "请勿短时间内重复增加优惠券发行量")
+    @PostMapping("/api/merchant-admin/coupon-template/increase-number")
+    public Result<Void> increaseNumberCouponTemplate(@RequestBody CouponTemplateNumberReqDTO requestParam) {
+        couponTemplateService.increaseNumberCouponTemplate(requestParam);
+        return Results.success();
+    }
 }
