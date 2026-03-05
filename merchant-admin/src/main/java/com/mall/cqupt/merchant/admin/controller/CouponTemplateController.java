@@ -43,6 +43,13 @@ public class CouponTemplateController {
         return Results.success(couponTemplateService.pageQueryCouponTemplate(requestParam));
     }
 
+    @Operation(summary = "结束优惠券模板")
+    @PostMapping("/api/merchant-admin/coupon-template/terminate")
+    public Result<Void> terminateCouponTemplate(String couponTemplateId) {
+        couponTemplateService.terminateCouponTemplate(couponTemplateId);
+        return Results.success();
+    }
+
     @Operation(summary = "增加优惠券模板发行量")
     @NoRepeatSubmit(message = "请勿短时间内重复增加优惠券发行量")
     @PostMapping("/api/merchant-admin/coupon-template/increase-number")

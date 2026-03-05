@@ -29,6 +29,13 @@ public interface CouponTemplateService extends IService<CouponTemplateDO> {
     IPage<CouponTemplatePageQueryRespDTO> pageQueryCouponTemplate(CouponTemplatePageQueryReqDTO requestParam);
 
     /**
+     * 结束优惠券模板
+     *
+     * @param couponTemplateId 优惠券模板 ID
+     */
+    void terminateCouponTemplate(String couponTemplateId);
+
+    /**
      * 增加优惠券模板发行量
      *
      * @param requestParam 请求参数
