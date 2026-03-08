@@ -38,6 +38,12 @@ public class CouponTaskDelayExecuteProducer extends AbstractCommonSendProduceTem
         this.environment = environment;
     }
 
+    /**
+     * @Description:
+     * buildBaseSendExtendParam这个函数的作用是定义消息发送的元数据（Metadata），它告诉系统这封信的地址、时效和名称
+     * buildMessage负责把业务数据 CouponTaskDelayEvent 封装成 Spring 消息框架标准的 Message 对象。
+     * buildBaseSendExtendParam 是在填写快递单（写地址、选顺丰特快、写备注），而 buildMessage 是把商品装进盒子里并贴上防伪标签。
+     */
     @Override
     protected BaseSendExtendDTO buildBaseSendExtendParam(CouponTaskDelayEvent messageSendEvent) {
         // 使用建造者模式构建基础发送参数对象

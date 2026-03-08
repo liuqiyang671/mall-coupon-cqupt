@@ -50,7 +50,7 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
             60,
             TimeUnit.SECONDS,
             new SynchronousQueue<>(),
-            new ThreadPoolExecutor.DiscardPolicy()
+            new ThreadPoolExecutor.DiscardPolicy()  // 当线程池里的线程已经达到了 maximumPoolSize，且都在忙，此时又来了一个新任务，线程池会直接把这个任务扔掉，且不报任何异常。
     );
 
     @Transactional(rollbackFor = Exception.class)
@@ -91,11 +91,11 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
     public IPage<CouponTaskPageQueryRespDTO> pageQueryCouponTask(CouponTaskPageQueryReqDTO requestParam) {
         // 构建分页查询模板 LambdaQueryWrapper
         LambdaQueryWrapper<CouponTaskDO> queryWrapper = Wrappers.lambdaQuery(CouponTaskDO.class)
-                .eq(CouponTaskDO::getShopNumber, UserContext.getShopNumber())
-                .eq(StrUtil.isNotBlank(requestParam.getBatchId()), CouponTaskDO::getBatchId, requestParam.getBatchId())
-                .like(StrUtil.isNotBlank(requestParam.getTaskName()), CouponTaskDO::getTaskName, requestParam.getTaskName())
-                .eq(StrUtil.isNotBlank(requestParam.getCouponTemplateId()), CouponTaskDO::getCouponTemplateId, requestParam.getCouponTemplateId())
-                .eq(Objects.nonNull(requestParam.getStatus()), CouponTaskDO::getStatus, requestParam.getStatus());
+                .eq(CouponTaskDO::getShopNumber, UserContext.getShopNumber()) // 商户编号
+                .eq(StrUtil.isNotBlank(requestParam.getBatchId()), CouponTaskDO::getBatchId, requestParam.getBatchId()) // 动态查询条件 - 批次 ID：只有当请求参数中的 batchId 不为空白时，才增加该等值查询条件
+                .like(StrUtil.isNotBlank(requestParam.getTaskName()), CouponTaskDO::getTaskName, requestParam.getTaskName()) // 优惠券推送任务名称
+                .eq(StrUtil.isNotBlank(requestParam.getCouponTemplateId()), CouponTaskDO::getCouponTemplateId, requestParam.getCouponTemplateId()) // 优惠券模板id
+                .eq(Objects.nonNull(requestParam.getStatus()), CouponTaskDO::getStatus, requestParam.getStatus()); // 状态 0：待执行 1：执行中 2：执行失败 3：执行成功 4：取消
 
         // MyBatis-Plus 分页查询优惠券推送任务信息
         IPage<CouponTaskDO> selectPage = couponTaskMapper.selectPage(requestParam, queryWrapper);

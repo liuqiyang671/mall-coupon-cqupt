@@ -19,6 +19,8 @@ import java.util.List;
 
 /**
  * 优惠券推送任务扫描定时发送记录 XXL-Job 处理器
+ * <p>
+ *     定时扫描数据库，找出那些“已经到了发送时间”却“还没开始发送”的优惠券任务，并把它们投递到消息队列中执行。
  */
 @Component
 @RequiredArgsConstructor
@@ -44,8 +46,10 @@ public class CouponTaskJobHandler extends IJobHandler {
 
         // 滚动查询循环，直到没有更多待处理任务
         while (true) {
+            // 分批次获取待处理的任务
             List<CouponTaskDO> couponTaskDOList = fetchPendingTasks(initId, now);
 
+            // 如果查不到数据了，说明全部处理完毕，跳出循环
             if (CollUtil.isEmpty(couponTaskDOList)) {
                 break;
             }
@@ -55,11 +59,12 @@ public class CouponTaskJobHandler extends IJobHandler {
                 distributeCoupon(each);
             }
 
+            // 如果查出来的数量小于 100，说明这是最后一页了，处理完直接退出
             if (couponTaskDOList.size() < MAX_LIMIT) {
                 break;
             }
 
-            // 更新 initId 为当前列表中最大 ID
+            // 更新 initId 为当前列表中最大 ID  下一次循环查询时，会从这个 ID 之后继续往后找，避免重复查询
             initId = couponTaskDOList.stream()
                     .mapToLong(CouponTaskDO::getId)
                     .max()
@@ -69,6 +74,7 @@ public class CouponTaskJobHandler extends IJobHandler {
 
     private void distributeCoupon(CouponTaskDO couponTask) {
         // 通过消息队列发送消息，修改状态记录并由分发服务消费者消费该消息
+        // 构造一个消息协议对象（Event）
         CouponTaskDelayEvent couponTaskDelayEvent = CouponTaskDelayEvent.builder()
                 .couponTaskId(couponTask.getId())
                 .status(CouponTaskStatusEnum.IN_PROGRESS.getStatus())

@@ -2,7 +2,9 @@
 <project version="4">
   <component name="DataSourcePerFileMappings">
     <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/df54a9e5-5a83-4218-b483-9f847aef1e9a/console.sql" value="df54a9e5-5a83-4218-b483-9f847aef1e9a" />
-    <file url="file://$PROJECT_DIR$/resources/database/coupon.sql" value="df54a9e5-5a83-4218-b483-9f847aef1e9a" />
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/df54a9e5-5a83-4218-b483-9f847aef1e9a/console_1.sql" value="df54a9e5-5a83-4218-b483-9f847aef1e9a" />
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/df54a9e5-5a83-4218-b483-9f847aef1e9a/console_2.sql" value="df54a9e5-5a83-4218-b483-9f847aef1e9a" />
     <file url="file://$PROJECT_DIR$/resources/database/coupon_log.sql" value="df54a9e5-5a83-4218-b483-9f847aef1e9a" />
+    <file url="file://$PROJECT_DIR$/resources/database/coupon_template.sql" value="df54a9e5-5a83-4218-b483-9f847aef1e9a" />
   </component>
 </project>
