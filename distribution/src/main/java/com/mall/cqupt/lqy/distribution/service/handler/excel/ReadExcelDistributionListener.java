@@ -9,7 +9,7 @@ import com.alibaba.excel.event.AnalysisEventListener;
 import com.mall.cqupt.lqy.distribution.common.constant.DistributionRedisConstant;
 import com.mall.cqupt.lqy.distribution.common.constant.EngineRedisConstant;
 import com.mall.cqupt.lqy.distribution.dao.entity.CouponTaskDO;
-import com.mall.cqupt.lqy.distribution.excel.CouponTaskExcelObject;
+
 import com.mall.cqupt.lqy.distribution.mq.event.CouponTemplateExecuteEvent;
 import com.mall.cqupt.lqy.distribution.mq.producer.CouponTemplateExecuteProducer;
 import com.mall.cqupt.lqy.distribution.remote.dto.resp.CouponTemplateQueryRemoteRespDTO;
@@ -25,7 +25,7 @@ import org.springframework.scripting.support.ResourceScriptSource;
  * 优惠券任务读取 Excel 分发监听器
  */
 @RequiredArgsConstructor
-public class ReadExcelDistributionListener extends AnalysisEventListener<com.mall.cqupt.lqy.distribution.excel.CouponTaskExcelObject> {
+public class ReadExcelDistributionListener extends AnalysisEventListener<CouponTaskExcelObject> {
 
     private final CouponTaskDO couponTask;
     private final CouponTemplateQueryRemoteRespDTO couponTemplate;
@@ -97,6 +97,7 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<com.mal
                 .mail(data.getMail())
                 .phone(data.getPhone())
                 .couponTaskId(couponTaskId)
+                .notifyType(couponTask.getNotifyType())
                 .couponTemplateId(couponTemplate.getId())
                 .couponTemplateConsumeRule(couponTemplate.getConsumeRule())
                 .batchUserSetSize(batchUserSetSize)

@@ -2,10 +2,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.nageoffer.onecoupon.distribution.dao.mapper.UserCouponMapper">
+<mapper namespace="com.mall.cqupt.lqy.distribution.dao.mapper.UserCouponMapper">
 
-    <!-- 查询用户优惠券最大领取次数 -->
-    <select id="selectUserCourseMaxReceiveCount" resultType="com.nageoffer.onecoupon.distribution.dao.entity.UserCouponDO">
+    <!-- 查询用户已经领取的优惠券的最大领取次数 -->
+    <select id="selectUserCourseMaxReceiveCount" resultType="com.mall.cqupt.lqy.distribution.dao.entity.UserCouponDO">
         SELECT a.user_id,
         a.receive_count
         FROM t_user_coupon AS a
