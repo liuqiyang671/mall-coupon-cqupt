@@ -67,10 +67,29 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                                         Map.Entry::getKey,
                                         entry -> entry.getValue() != null ? entry.getValue().toString() : ""
                                 ));
+                        // 1. 先初始化一个目标类型的空 Map
+                        //  Map<String, String> actualCacheTargetMap = new HashMap<>();
+                        // 2. 遍历原 Map 的每一个 Entry（键值对）
+                        // for (Map.Entry<String, Object> entry : cacheTargetMap.entrySet()) {
+                        //    String key = entry.getKey();
+                        //    Object value = entry.getValue();
+                        //    // 3. 这里的逻辑与 Stream 中的 Lambda 一致：
+                        //    // 如果值为 null，转换为空字符串；否则调用 toString()
+                        //    String stringValue = (value != null) ? value.toString() : "";
+                        //    // 4. 存入目标 Map
+                        //    actualCacheTargetMap.put(key, stringValue);
+                        //}
                         stringRedisTemplate.opsForHash().putAll(couponTemplateCacheKey, actualCacheTargetMap);
                         couponTemplateCacheMap = cacheTargetMap.entrySet()
                                 .stream()
                                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                        // couponTemplateCacheMap = new HashMap<>();
+                        // 遍历 cacheTargetMap 的键值对
+                        // for (Map.Entry<String, Object> entry : cacheTargetMap.entrySet()) {
+                        //  将键和值放入新 Map 中
+                        //  这里会自动将 String 类型的 Key 向上转型为 Object
+                        //  couponTemplateCacheMap.put(entry.getKey(), entry.getValue());
+                        //}
                     }
                 }
             } finally {
