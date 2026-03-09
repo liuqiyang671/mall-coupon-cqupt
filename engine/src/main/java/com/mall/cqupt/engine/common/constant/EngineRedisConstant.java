@@ -1,4 +1,4 @@
-package com.mall.cqupt.engine.constant;
+package com.mall.cqupt.engine.common.constant;
 
 /**
  * 分布式 Redis 缓存引擎层常量类
