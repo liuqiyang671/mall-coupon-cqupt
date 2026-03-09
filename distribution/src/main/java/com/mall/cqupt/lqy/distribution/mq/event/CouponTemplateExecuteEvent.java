@@ -27,6 +27,11 @@ public class CouponTemplateExecuteEvent {
     private String notifyType;
 
     /**
+     * 店铺编号
+     */
+    private Long shopNumber;
+
+    /**
      * 优惠券模板id
      */
     private String couponTemplateId;

@@ -98,6 +98,7 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
                 .phone(data.getPhone())
                 .couponTaskId(couponTaskId)
                 .notifyType(couponTask.getNotifyType())
+                .shopNumber(couponTask.getShopNumber())
                 .couponTemplateId(couponTemplate.getId())
                 .couponTemplateConsumeRule(couponTemplate.getConsumeRule())
                 .batchUserSetSize(batchUserSetSize)
@@ -116,6 +117,7 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
         CouponTemplateExecuteEvent couponTemplateExecuteEvent = CouponTemplateExecuteEvent.builder()
                 .batchUserSetSize(-1L)
                 .distributionEndFlag(Boolean.TRUE) // 设置解析完成标识
+                .shopNumber(couponTask.getShopNumber())
                 .couponTemplateId(couponTemplate.getId())
                 .couponTemplateConsumeRule(couponTemplate.getConsumeRule())
                 .couponTaskId(String.valueOf(couponTask.getId()))

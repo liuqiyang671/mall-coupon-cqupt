@@ -7,12 +7,15 @@ import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 
+import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.mall.cqupt.lqy.distribution.common.constant.DistributionRedisConstant;
 import com.mall.cqupt.lqy.distribution.common.constant.DistributionRocketMQConstant;
 import com.mall.cqupt.lqy.distribution.common.constant.EngineRedisConstant;
 import com.mall.cqupt.lqy.distribution.common.enums.CouponSourceEnum;
 import com.mall.cqupt.lqy.distribution.common.enums.CouponStatusEnum;
+import com.mall.cqupt.lqy.distribution.dao.entity.CouponTemplateDO;
 import com.mall.cqupt.lqy.distribution.dao.entity.UserCouponDO;
+import com.mall.cqupt.lqy.distribution.dao.mapper.CouponTemplateMapper;
 import com.mall.cqupt.lqy.distribution.dao.mapper.UserCouponMapper;
 import com.mall.cqupt.lqy.distribution.mq.base.MessageWrapper;
 import com.mall.cqupt.lqy.distribution.mq.event.CouponTemplateExecuteEvent;
@@ -28,7 +31,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -46,8 +51,9 @@ import java.util.List;
 @Slf4j(topic = "CouponExecuteDistributionConsumer")
 public class CouponExecuteDistributionConsumer implements RocketMQListener<MessageWrapper<CouponTemplateExecuteEvent>> {
 
-    private final UserCouponMapper userCouponMapper; // 数据库操作 Mapper
-    private final StringRedisTemplate stringRedisTemplate; // Redis 操作客户端
+    private final UserCouponMapper userCouponMapper;
+    private final StringRedisTemplate stringRedisTemplate;
+    private final CouponTemplateMapper couponTemplateMapper;
 
     // 触发批量保存的水位线：每攒够 5000 条，执行一次数据库 Insert
     private final static int BATCH_USER_COUPON_SIZE = 5000;
@@ -58,63 +64,89 @@ public class CouponExecuteDistributionConsumer implements RocketMQListener<Messa
      * 消费核心逻辑。
      * 注意：生产者每读一行 Excel 就会发一条消息过来。所以如果 Excel 有 1万行，这个方法会被调 1万次。
      */
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void onMessage(MessageWrapper<CouponTemplateExecuteEvent> messageWrapper) {
         // 打印日志：记录当前正在处理的消息。在高并发下可能日志量极大，建议线上环境调为 debug 级别或采样打印。
         log.info("[消费者] 优惠券任务执行推送@分发到用户账号 - 执行消费逻辑，消息体：{}", JSON.toJSONString(messageWrapper));
 
         CouponTemplateExecuteEvent event = messageWrapper.getMessage();
-        String couponTemplateId = event.getCouponTemplateId();
-
-        // 核心削峰逻辑 - 水位线触发：
-        // 只有当消息里携带的 "当前已发人数" 达到 5000 的倍数，或者携带了 "Excel读完" 的终结信号时，才真正去触碰数据库。
-        // 也就是说，前 4999 条消息进到这个方法，连这个 if 都进不去，直接就执行结束了（相当于空跑，起到了过滤作用）。
-        if (event.getBatchUserSetSize() >= BATCH_USER_COUPON_SIZE || event.getDistributionEndFlag()) {
-
-            // 拼接 Redis 集合（Set）的 Key。之前执行 Lua 脚本时，成功的用户 ID 都被装进了这个 Set 里。
+        if(!event.getDistributionEndFlag() && event.getBatchUserSetSize() >= BATCH_USER_COUPON_SIZE){
+            decrementCouponTemplateStockAndSaveUserCouponList(event);
+        }
+        // 分发任务结束标识为 TRUE，代表已经没有 Excel 记录了
+        if(event.getDistributionEndFlag()){
             String batchUserSetKey = String.format(DistributionRedisConstant.TEMPLATE_TASK_EXECUTE_BATCH_USER_KEY, event.getCouponTaskId());
-
-            // 从 Redis Set 中弹出并删除数据。
-            // 为什么是 BATCH_USER_COUPON_SIZE << 1 (即 5000 * 2 = 10000)？
-            // 假设消费者在第 4999 条时宕机，重启后生产者可能已经把 Set 填到了 6000 条。
-            // 如果这里严格只弹 5000 条，剩下的可能会因为错过了下一次“5000倍数”触发而被遗漏在 Redis 里。
-            // 扩大一倍弹出量，保证只要触发了落库，就能把堆积的数据尽可能全带走。
-            List<String> batchUserIds = stringRedisTemplate.opsForSet().pop(batchUserSetKey, BATCH_USER_COUPON_SIZE << 1);
-
-            // 如果 Redis 里没数据（可能已经被其他并发的消费线程弹走了），直接返回，防止报错。
-            if (CollUtil.isEmpty(batchUserIds)) {
-                return;
+            // 查一下此时此刻，Redis里还剩下多少个等待真正发券的用户。 因为是尾部数据，可能不满 5000 条（比如还剩 3200 条）。
+            Long batchUserIdsSize = stringRedisTemplate.opsForSet().size(batchUserSetKey);
+            // 将查出来的真实剩余人数，塞进 event 对象中。
+            event.setBatchUserSetSize(batchUserIdsSize);
+            // 调用真正的业务方法去 MySQL 扣减实际库存，并将刚才那些用户落库（批量 Insert）。
+            // 如果这 3200 人都有库存，这个方法会把他们全部发券，并从 Redis 里移走；
+            // 如果 MySQL 里真实库存只剩 2000 了，这个方法只会给前 2000 人发券，而把剩下的 1200 人“遗弃”在 Redis 集合里！
+            decrementCouponTemplateStockAndSaveUserCouponList(event);
+            // 从 Redis 中把这个 Key 剩下的所有数据一次性全部弹出来（Integer.MAX_VALUE 代表能弹多少弹多少，直接清空）。
+            List<String> batchUserIds = stringRedisTemplate.opsForSet().pop(batchUserSetKey, Integer.MAX_VALUE);
+            // 此时待保存入库用户优惠券列表如果还有值，就意味着可能库存不足引起的
+            if (CollUtil.isNotEmpty(batchUserIds)) {
+                // TODO 应该添加到 t_coupon_task_fail 并标记错误原因
             }
-
-            // 直接传入 batchUserIds.size() 初始化 ArrayList 的容量。
-            // 避免 ArrayList 底层因为数据量大而发生多次数组复制扩容，极致压榨性能。
-            List<UserCouponDO> userCouponDOList = new ArrayList<>(batchUserIds.size());
-            Date now = new Date(); // 统一获取一次时间，避免在循环里 new Date() 产生性能损耗
-
-            // 遍历从 Redis 捞出来的真实用户 ID，组装成要插入数据库的实体对象 (DO)
-            for (String each : batchUserIds) {
-                UserCouponDO userCouponDO = UserCouponDO.builder()
-                        .couponTemplateId(Long.parseLong(couponTemplateId))
-                        .userId(Long.parseLong(each)) // 从 Redis 取出的用户 ID
-                        .receiveTime(now)
-                        .receiveCount(1) // 业务逻辑：代表第一次领取该优惠券
-                        .validStartTime(now)
-                        // 从消息体传递过来的 JSON 规则中解析出该优惠券的过期时间
-                        .validEndTime(JSON.parseObject(event.getCouponTemplateConsumeRule()).getDate("validityPeriod"))
-                        .source(CouponSourceEnum.PLATFORM.getType())
-                        .status(CouponStatusEnum.EFFECTIVE.getType())
-                        .createTime(now)
-                        .updateTime(now)
-                        .delFlag(0)
-                        .build();
-                userCouponDOList.add(userCouponDO);
-            }
-
-            // 调用专门的批量保存方法，这个方法内部做了严密的异常重试处理
-            batchSaveUserCouponList(Long.parseLong(couponTemplateId), userCouponDOList);
         }
     }
 
+    private void decrementCouponTemplateStockAndSaveUserCouponList(CouponTemplateExecuteEvent event) {
+        Long couponTemplateStock = decrementCouponTemplateStock(event, event.getBatchUserSetSize());
+        // 如果等于 0 意味着已经没有了库存，直接返回即可
+        if (couponTemplateStock <= 0L) {
+            return;
+        }
+
+        // 获取 Redis 中待保存入库用户优惠券列表
+        String batchUserSetKey = String.format(DistributionRedisConstant.TEMPLATE_TASK_EXECUTE_BATCH_USER_KEY, event.getCouponTaskId());
+        List<String> batchUserIds = stringRedisTemplate.opsForSet().pop(batchUserSetKey, couponTemplateStock);
+
+        // 直接传入 batchUserIds.size() 初始化 ArrayList 的容量。
+        // 避免 ArrayList 底层因为数据量大而发生多次数组复制扩容，极致压榨性能。
+        List<UserCouponDO> userCouponDOList = new ArrayList<>(batchUserIds.size());
+        Date now = new Date();
+
+        // 遍历从 Redis 捞出来的真实用户 ID，组装成要插入数据库的实体对象 (DO)
+        for (String each : batchUserIds) {
+            UserCouponDO userCouponDO = UserCouponDO.builder()
+                    .couponTemplateId(Long.parseLong(event.getCouponTemplateId()))
+                    .userId(Long.parseLong(each)) // 从 Redis 取出的用户 ID
+                    .receiveTime(now)
+                    .receiveCount(1) // 业务逻辑：代表第一次领取该优惠券
+                    .validStartTime(now)
+                    // 从消息体传递过来的 JSON 规则中解析出该优惠券的过期时间
+                    .validEndTime(JSON.parseObject(event.getCouponTemplateConsumeRule()).getDate("validityPeriod"))
+                    .source(CouponSourceEnum.PLATFORM.getType())
+                    .status(CouponStatusEnum.EFFECTIVE.getType())
+                    .createTime(now)
+                    .updateTime(now)
+                    .delFlag(0)
+                    .build();
+            userCouponDOList.add(userCouponDO);
+        }
+
+        // 平台优惠券每个用户限领一次。批量新增用户优惠券记录，底层通过递归方式直到全部新增成功
+        batchSaveUserCouponList(Long.parseLong(event.getCouponTemplateId()), userCouponDOList);
+    }
+    private Long decrementCouponTemplateStock(CouponTemplateExecuteEvent event, Long decrementStockSize) {
+        // 通过乐观机制自减优惠券库存记录
+        String couponTemplateId = event.getCouponTemplateId();
+        int decremented = couponTemplateMapper.decrementCouponTemplateStock(event.getShopNumber(), Long.parseLong(couponTemplateId), decrementStockSize);
+
+        // 如果修改记录失败，意味着优惠券库存已不足，需要重试获取到可自减的库存数值
+        if(!SqlHelper.retBool(decremented)){
+            LambdaQueryWrapper<CouponTemplateDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateDO.class)
+                    .eq(CouponTemplateDO::getShopNumber, event.getShopNumber())
+                    .eq(CouponTemplateDO::getId, Long.parseLong(couponTemplateId));
+            CouponTemplateDO couponTemplateDO = couponTemplateMapper.selectOne(queryWrapper);
+            return decrementCouponTemplateStock(event, couponTemplateDO.getStock().longValue());
+        }
+        return decrementStockSize;
+    }
     /**
      * 批量保存用户优惠券记录（带冲突自动排查机制）
      */
