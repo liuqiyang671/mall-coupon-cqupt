@@ -36,6 +36,7 @@ knife4j:
     language: zh_cn
 
 xxl-job:
+  enable: false
   access-token:
   admin:
     addresses: http://localhost:8088/xxl-job-admin
