@@ -19,4 +19,10 @@ public final class EngineRedisConstant {
      * 优惠券模板缓存 Key
      */
     public static final String USER_COUPON_TEMPLATE_LIMIT_KEY = "one-coupon_engine:user-template-limit:%s_%s";
+
+    /**
+     * 优惠券模板缓存空值 Key
+     */
+    public static final String COUPON_TEMPLATE_IS_NULL_KEY = "one-coupon_engine:template_is_null:%s";
+
 }
