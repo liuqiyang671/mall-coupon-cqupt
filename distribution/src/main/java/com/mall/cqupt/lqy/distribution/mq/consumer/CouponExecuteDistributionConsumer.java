@@ -1,8 +1,6 @@
 package com.mall.cqupt.lqy.distribution.mq.consumer;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.lang.Singleton;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -10,7 +8,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.mall.cqupt.lqy.distribution.common.constant.DistributionRedisConstant;
 import com.mall.cqupt.lqy.distribution.common.constant.DistributionRocketMQConstant;
-import com.mall.cqupt.lqy.distribution.common.constant.EngineRedisConstant;
 import com.mall.cqupt.lqy.distribution.common.enums.CouponSourceEnum;
 import com.mall.cqupt.lqy.distribution.common.enums.CouponStatusEnum;
 import com.mall.cqupt.lqy.distribution.dao.entity.CouponTemplateDO;
@@ -19,21 +16,15 @@ import com.mall.cqupt.lqy.distribution.dao.mapper.CouponTemplateMapper;
 import com.mall.cqupt.lqy.distribution.dao.mapper.UserCouponMapper;
 import com.mall.cqupt.lqy.distribution.mq.base.MessageWrapper;
 import com.mall.cqupt.lqy.distribution.mq.event.CouponTemplateExecuteEvent;
-import com.mall.cqupt.lqy.distribution.remote.dto.resp.CouponTemplateQueryRemoteRespDTO;
-import com.mall.cqupt.lqy.distribution.toolkit.StockDecrementReturnCombinedUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.executor.BatchExecutorException;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -58,7 +49,7 @@ public class CouponExecuteDistributionConsumer implements RocketMQListener<Messa
     // 触发批量保存的水位线：每攒够 5000 条，执行一次数据库 Insert
     private final static int BATCH_USER_COUPON_SIZE = 5000;
 
-    private final static String STOCK_DECREMENT_USER_RECORD_LUA_PATH = "lua/stock_decrement_user_record.lua";
+    private final static String STOCK_DECREMENT_USER_RECORD_LUA_PATH = "lua/stock_decrement_and_batch_save_user_record.lua";
 
     /**
      * 消费核心逻辑。

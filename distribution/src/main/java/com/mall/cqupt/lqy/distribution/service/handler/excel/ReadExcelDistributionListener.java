@@ -35,8 +35,7 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
 
     @Getter
     private int rowCount = 0; // 当前读取到了Excel的第几行
-    private final static String STOCK_DECREMENT_USER_RECORD_LUA_PATH = "lua/stock_decrement_user_record.lua";
-
+    private final static String STOCK_DECREMENT_AND_BATCH_SAVE_USER_RECORD_LUA_PATH = "lua/stock_decrement_and_batch_save_user_record.lua";
     // 逐行处理 Excel 数据。 Excel 里有多少行用户数据，这个方法就会被触发多少次。
     @Override
     public void invoke(CouponTaskExcelObject data, AnalysisContext context) {
@@ -57,13 +56,13 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
         // 单例模式：保证在整个程序的运行期间，某个对象在内存中永远只被创建一次，有且只有这一个实例供大家共享使用。
         // 参数1 (Key)：使用脚本的路径作为唯一标识（例如 "lua/stock.lua"）。
         // 参数2 (Supplier 函数)：一段“对象制造说明书”。只有当内存池里找不到这个 Key 对应的对象时，才会执行这段括号里的逻辑去真正加载文件。
-        DefaultRedisScript<Long> buildLuaScript = Singleton.get(STOCK_DECREMENT_USER_RECORD_LUA_PATH, () -> {
+        DefaultRedisScript<Long> buildLuaScript = Singleton.get(STOCK_DECREMENT_AND_BATCH_SAVE_USER_RECORD_LUA_PATH, () -> {
             // 1. 创建 Spring Data Redis 提供的 Lua 脚本操作对象
             DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>();
             // 2. 指定 Lua 脚本的物理文件来源
             // ClassPathResource: 告诉 Spring 去项目的类路径（通常是 src/main/resources 目录）下找这个文件
             // ResourceScriptSource: 将找到的物理文件包装成 Spring Redis 能够识别的脚本资源流
-            redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(STOCK_DECREMENT_USER_RECORD_LUA_PATH)));
+            redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource(STOCK_DECREMENT_AND_BATCH_SAVE_USER_RECORD_LUA_PATH)));
             // 3. 强制设置脚本的返回值类型
             // 必须显式声明！否则 Redis 默认返回的可能是反序列化不了的字节序列，导致代码抛出 ClassCastException（类型转换异常）
             redisScript.setResultType(Long.class);
