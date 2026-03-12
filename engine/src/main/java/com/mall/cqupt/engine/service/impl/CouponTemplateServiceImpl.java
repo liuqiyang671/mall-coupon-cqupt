@@ -7,6 +7,8 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Singleton;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -24,6 +26,7 @@ import com.mall.cqupt.engine.dao.mapper.UserCouponMapper;
 import com.mall.cqupt.engine.dto.req.CouponTemplateQueryReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateRedeemReqDTO;
 import com.mall.cqupt.engine.dto.resp.CouponTemplateQueryRespDTO;
+import com.mall.cqupt.engine.mq.event.UserCouponDelayCloseEvent;
 import com.mall.cqupt.engine.mq.producer.UserCouponDelayCloseProducer;
 import com.mall.cqupt.engine.service.CouponTemplateService;
 import com.mall.cqupt.engine.toolkit.StockDecrementReturnCombinedUtil;
@@ -31,11 +34,13 @@ import com.mall.cqupt.framework.exception.ClientException;
 import com.mall.cqupt.framework.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.producer.SendResult;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
@@ -231,12 +236,43 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                         .build();
                 userCouponMapper.insert(userCouponDO);
 
-                // TODO 添加用户领取优惠券模板缓存记录
+                // 保存优惠券缓存集合有两个选项：direct 在流程里直接操作，binlog 通过解析数据库日志后操作
+                if(StrUtil.equals(userCouponTemplateLimitCacheKey,"direct")){
+                    // 添加用户领取优惠券模板缓存记录
+                    String userCouponListCacheKey = String.format(EngineRedisConstant.USER_COUPON_TEMPLATE_LIST_KEY, UserContext.getUserId());
+                    String userCouponItemCacheKey = StrUtil.builder()
+                            .append(requestParam.getCouponTemplateId())
+                            .append("_")
+                            .append(userCouponDO.getId())
+                            .toString();
+                    // 将该优惠券存入 Redis 的有序集合 (ZSet) 中
+                    // 使用当前时间戳 (now.getTime()) 作为分数 (Score)，方便后续按领取时间排序查询
+                    stringRedisTemplate.opsForZSet().add(userCouponListCacheKey, userCouponItemCacheKey, now.getTime());
+                    // 发送延时消息队列，等待优惠券到期后，将优惠券信息从缓存中删除
+                    UserCouponDelayCloseEvent userCouponDelayCloseEvent = UserCouponDelayCloseEvent.builder()
+                            .couponTemplateId(requestParam.getCouponTemplateId())
+                            .userCouponId(String.valueOf(userCouponDO.getId()))
+                            .userId(UserContext.getUserId())
+                            .build();
+                    // 发送延迟消息至 RocketMQ：
+                    // 参数 validEndTime.getTime() 告知 MQ 该消息应在优惠券失效的那一刻才投递给消费者
+                    // 消费者收到消息后，会将该券从 Redis 缓存中移除，确保用户看到的列表不含过期券
+                    SendResult sendResult = couponDelayCloseProducer.sendMessage(userCouponDelayCloseEvent, validEndTime.getTime());
+
+                    // 发送消息失败解决方案简单且高效的逻辑之一：打印日志并报警，通过日志搜集并重新投递
+                    if (ObjectUtil.notEqual(sendResult.getSendStatus().name(), "SEND_OK")) {
+                        log.warn("发送优惠券关闭延时队列失败，消息参数：{}", JSON.toJSONString(userCouponDelayCloseEvent));
+                    }
+                }
             } catch (Exception ex) {
                 status.setRollbackOnly();
                 // 自减用户领取的优惠券记录 xxx_优惠券ID_用户ID Value 是领取次数
                 if (ex instanceof ServiceException) {
                     throw (ServiceException) ex;
+                }
+                if (ex instanceof DuplicateKeyException) {
+                    log.error("用户重复领取优惠券，用户ID：{}，优惠券模板ID：{}", UserContext.getUserId(), requestParam.getCouponTemplateId());
+                    throw new ServiceException("用户重复领取优惠券");
                 }
                 throw new ServiceException("优惠券领取异常，请稍候再试");
             }
