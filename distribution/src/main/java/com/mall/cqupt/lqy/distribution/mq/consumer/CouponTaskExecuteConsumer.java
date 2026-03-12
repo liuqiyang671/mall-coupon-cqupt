@@ -50,7 +50,7 @@ public class CouponTaskExecuteConsumer implements RocketMQListener<MessageWrappe
 
         var couponTaskId = messageWrapper.getMessage().getCouponTaskId();
         var couponTaskDO = couponTaskMapper.selectById(couponTaskId);
-        // 判断优惠券模板发送状态是否为执行中，如果不是有可能是被取消状态
+        // 判断优惠券模板发送状态是否为执行中，如果不是有可能是被取消状态，不是则终止后续操作
         if (ObjectUtil.notEqual(couponTaskDO.getStatus(), CouponTaskStatusEnum.IN_PROGRESS.getStatus())) {
             log.warn("[消费者] 优惠券推送任务正式执行 - 推送任务记录状态异常：{}，已终止推送", couponTaskDO.getStatus());
             return;

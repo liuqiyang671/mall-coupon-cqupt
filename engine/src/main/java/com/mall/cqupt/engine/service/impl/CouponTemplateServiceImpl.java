@@ -28,7 +28,6 @@ import com.mall.cqupt.engine.toolkit.StockDecrementReturnCombinedUtil;
 import com.mall.cqupt.framework.exception.ClientException;
 import com.mall.cqupt.framework.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
-import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.core.io.ClassPathResource;
@@ -38,8 +37,8 @@ import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Date;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -55,43 +54,24 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     private final StringRedisTemplate stringRedisTemplate;
     private final RedissonClient redissonClient;
 
-    private final RBloomFilter<String> couponTemplateQueryBloomFilter;
-
     private final TransactionTemplate transactionTemplate;
 
     private final static String STOCK_DECREMENT_AND_SAVE_USER_RECEIVE_LUA_PATH = "lua/stock_decrement_and_save_user_receive.lua";
 
     @Override
     public CouponTemplateQueryRespDTO findCouponTemplate(CouponTemplateQueryReqDTO requestParam) {
+        // TODO 防止缓存穿透
         // 查询 Redis 缓存中是否存在优惠券模板信息
         String couponTemplateCacheKey = String.format(EngineRedisConstant.COUPON_TEMPLATE_KEY, requestParam.getCouponTemplateId());
         Map<Object, Object> couponTemplateCacheMap = stringRedisTemplate.opsForHash().entries(couponTemplateCacheKey);
 
-        // 如果存在直接返回，不存在需要通过布隆过滤器、缓存空值以及双重判定锁的形式读取数据库中的记录
+        // 如果存在直接返回，不存在需要通过双重判定锁的形式读取数据库中的记录
         if (MapUtil.isEmpty(couponTemplateCacheMap)) {
-            // 判断布隆过滤器是否存在指定模板 ID，不存在直接返回错误
-            if(!couponTemplateQueryBloomFilter.contains(requestParam.getCouponTemplateId())){
-                throw new ClientException("优惠券模板不存在");
-            }
-
-            // 查询 Redis 缓存中是否存在优惠券模板空值信息，如果有代表模板不存在，直接返回（直接讲key存入redis）
-            String couponTemplateIsNullCacheKey = String.format(EngineRedisConstant.COUPON_TEMPLATE_IS_NULL_KEY, requestParam.getCouponTemplateId());
-            Boolean hasKeyFlag = stringRedisTemplate.hasKey(couponTemplateIsNullCacheKey);
-            if(hasKeyFlag){
-                throw new ClientException("优惠券模板不存在");
-            }
-
             // 获取优惠券模板分布式锁
             RLock lock = redissonClient.getLock(String.format(EngineRedisConstant.LOCK_COUPON_TEMPLATE_KEY, requestParam.getCouponTemplateId()));
             lock.lock();
 
             try {
-                // 双重判定空值缓存是否存在，存在则继续抛异常
-                hasKeyFlag = stringRedisTemplate.hasKey(couponTemplateIsNullCacheKey);
-                if (hasKeyFlag) {
-                    throw new ClientException("优惠券模板不存在");
-                }
-
                 // 通过双重判定锁优化大量请求无意义查询数据库
                 couponTemplateCacheMap = stringRedisTemplate.opsForHash().entries(couponTemplateCacheKey);
                 if (MapUtil.isEmpty(couponTemplateCacheMap)) {
@@ -100,55 +80,39 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                             .eq(CouponTemplateDO::getId, Long.parseLong(requestParam.getCouponTemplateId()));
                     CouponTemplateDO couponTemplateDO = couponTemplateMapper.selectOne(queryWrapper);
 
-                    // 优惠券模板不存在或者已过期加入空值缓存，并且抛出异常
-                    if(couponTemplateDO == null) {
-                        stringRedisTemplate.opsForValue().set(couponTemplateIsNullCacheKey, "",30, TimeUnit.MINUTES);
-                        throw new ClientException("优惠券模板不存在或已过期");
+                    if (couponTemplateDO != null) {
+                        // 通过将数据库的记录序列化成 JSON 字符串放入 Redis 缓存
+                        CouponTemplateQueryRespDTO actualRespDTO = BeanUtil.toBean(couponTemplateDO, CouponTemplateQueryRespDTO.class);
+                        Map<String, Object> cacheTargetMap = BeanUtil.beanToMap(actualRespDTO, false, true);
+                        Map<String, String> actualCacheTargetMap = cacheTargetMap.entrySet().stream()
+                                .collect(Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        entry -> entry.getValue() != null ? entry.getValue().toString() : ""
+                                ));
+                        // 1. 先初始化一个目标类型的空 Map
+                        //  Map<String, String> actualCacheTargetMap = new HashMap<>();
+                        // 2. 遍历原 Map 的每一个 Entry（键值对）
+                        // for (Map.Entry<String, Object> entry : cacheTargetMap.entrySet()) {
+                        //    String key = entry.getKey();
+                        //    Object value = entry.getValue();
+                        //    // 3. 这里的逻辑与 Stream 中的 Lambda 一致：
+                        //    // 如果值为 null，转换为空字符串；否则调用 toString()
+                        //    String stringValue = (value != null) ? value.toString() : "";
+                        //    // 4. 存入目标 Map
+                        //    actualCacheTargetMap.put(key, stringValue);
+                        //}
+                        stringRedisTemplate.opsForHash().putAll(couponTemplateCacheKey, actualCacheTargetMap);
+                        couponTemplateCacheMap = cacheTargetMap.entrySet()
+                                .stream()
+                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                        // couponTemplateCacheMap = new HashMap<>();
+                        // 遍历 cacheTargetMap 的键值对
+                        // for (Map.Entry<String, Object> entry : cacheTargetMap.entrySet()) {
+                        //  将键和值放入新 Map 中
+                        //  这里会自动将 String 类型的 Key 向上转型为 Object
+                        //  couponTemplateCacheMap.put(entry.getKey(), entry.getValue());
+                        //}
                     }
-                    // 通过将数据库的记录序列化成 JSON 字符串放入 Redis 缓存
-                    CouponTemplateQueryRespDTO actualRespDTO = BeanUtil.toBean(couponTemplateDO, CouponTemplateQueryRespDTO.class);
-                    Map<String, Object> cacheTargetMap = BeanUtil.beanToMap(actualRespDTO, false, true);
-                    Map<String, String> actualCacheTargetMap = new HashMap<>();
-                    for(Map.Entry<String, Object> entry: cacheTargetMap.entrySet()){
-                        String key = entry.getKey();
-                        String value = entry.getValue() != null ? entry.getValue().toString() : "";
-                        actualCacheTargetMap.put(key, value);
-                    }
-                    // 将优惠卷模板加入缓存stream写法
-//                    Map<String, String> actualCacheTargetMap = cacheTargetMap.entrySet().stream()
-//                            .collect(Collectors.toMap(
-//                                    Map.Entry::getKey,
-//                                    entry -> entry.getValue() != null ? entry.getValue().toString() : ""
-//                            ));
-                    // 定义 Lua 脚本：
-                    //    第一句：使用 HMSET 设置 Hash 数据，unpack 用于将 ARGV 参数数组展开（从第1位到倒数第2位）
-                    //    第二句：使用 EXPIREAT 设置该 Key 的过期时间戳（取 ARGV 数组的最后一位）
-                    // 通过 LUA 脚本执行设置 Hash 数据以及设置过期时间
-                    String luaScript = "redis.call('HMSET', KEYS[1], unpack(ARGV, 1, #ARGV - 1)) " +
-                            "redis.call('EXPIREAT', KEYS[1], ARGV[#ARGV])";
-
-
-                    List<String> keys = Collections.singletonList(couponTemplateCacheKey);
-                    // 初始化 Lua 脚本所需的参数列表（ARGV），容量为：Map 键值对数量 * 2 + 1（存放过期时间）
-                    List<String> args = new ArrayList<>(actualCacheTargetMap.size() * 2 + 1);
-                    // 依次向参数列表中添加 Hash 的字段名（Field）和值（Value）
-                    actualCacheTargetMap.forEach((key, value) -> {
-                        args.add(key);
-                        args.add(value);
-                    });
-
-                    // 优惠券活动过期时间转换为秒级别的 Unix 时间戳
-                    args.add(String.valueOf(couponTemplateDO.getValidEndTime().getTime() / 1000));
-
-                    // 执行 LUA 脚本
-                    stringRedisTemplate.execute(
-                            new DefaultRedisScript<>(luaScript, Long.class),
-                            keys,
-                            args.toArray()
-                    );
-                    couponTemplateCacheMap = cacheTargetMap.entrySet()
-                            .stream()
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                 }
             } finally {
                 lock.unlock();

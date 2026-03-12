@@ -37,7 +37,7 @@ public class MockCouponTemplateDataTests {
             new SynchronousQueue<>(),
             new ThreadPoolExecutor.CallerRunsPolicy()
     );
-    private final int maxNum = 500000;
+    private final int maxNum = 5000;
 
     public void beforeDataBuild() {
         for (int i = 0; i < 20; i++) {

@@ -27,7 +27,6 @@ import com.mall.cqupt.merchant.admin.service.basics.chain.MerchantAdminChainCont
 import com.mzt.logapi.context.LogRecordContext;
 import com.mzt.logapi.starter.annotation.LogRecord;
 import lombok.RequiredArgsConstructor;
-import org.redisson.api.RBloomFilter;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -47,8 +46,6 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     private final MerchantAdminChainContext merchantAdminChainContext;
 
     private final StringRedisTemplate stringRedisTemplate;
-
-    private final RBloomFilter<String> couponTemplateQueryBloomFilter;
 
     @LogRecord(
             success = CREATE_COUPON_TEMPLATE_LOG_CONTENT,
@@ -95,9 +92,6 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         // 将处理好的 Map 一次性写入 Redis 的 Hash 结构中
         // opsForHash().putAll 对应 Redis 的 HMSET 命令，可以同时设置多个字段，性能比多次调用 put (HSET) 更高
         stringRedisTemplate.opsForHash().putAll(couponTemplateCacheKey, actualCacheTargetMap);
-
-        // 添加优惠券模板 ID 到布隆过滤器
-        couponTemplateQueryBloomFilter.add(couponTemplateCacheKey);
     }
 
     @Override

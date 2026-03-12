@@ -4,11 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
- * 创建优惠券模板预约题型接口请求参数实体
+ * 取消抢券预约提醒接口请求参数实体
  */
 @Data
-@Schema(description = "优惠券预约抢券提醒请求参数实体")
-public class CouponTemplateRemindCreateReqDTO {
+@Schema(description = "取消优惠券预约抢券提醒参数实体")
+public class CouponTemplateRemindCancelReqDTO {
 
     /**
      * 优惠券模板id
@@ -33,4 +33,5 @@ public class CouponTemplateRemindCreateReqDTO {
      */
     @Schema(description = "提醒方式", example = "0", required = true)
     private Integer type;
+
 }
