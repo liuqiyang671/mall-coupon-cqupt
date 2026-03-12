@@ -10,5 +10,11 @@ import com.mall.cqupt.engine.service.handler.remind.dto.RemindCouponTemplateDTO;
  * 开发时间：2024-07-18
  */
 public interface RemindCouponTemplate {
+    /**
+     * 提醒用户抢券
+     *
+     * @param remindCouponTemplateDTO 提醒所需要的信息
+     */
     boolean remind(RemindCouponTemplateDTO remindCouponTemplateDTO);
+
 }
