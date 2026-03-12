@@ -1,0 +1,25 @@
+package com.mall.cqupt.engine.service.handler.remind.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+/**
+ * 发送抢券提醒实体
+ */
+@Data
+@Schema(description = "发送抢券提醒实体")
+public class RemindCouponTemplateDTO {
+
+    /**
+     * 优惠券模板id
+     */
+    @Schema(description = "优惠券模板id", example = "1810966706881941507", required = true)
+    private String couponTemplateId;
+
+    /**
+     * 用户id
+     */
+    @Schema(description = "用户id", example = "1810868149847928832", required = true)
+    private String userId;
+
+}
