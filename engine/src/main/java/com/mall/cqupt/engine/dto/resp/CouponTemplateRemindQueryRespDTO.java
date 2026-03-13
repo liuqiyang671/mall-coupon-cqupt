@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Data
 @Schema(description = "查询优惠券预约抢券提醒返回实体")
-public class CouponTemplateRemindPageQueryRespDTO {
+public class CouponTemplateRemindQueryRespDTO {
 
 
     /**

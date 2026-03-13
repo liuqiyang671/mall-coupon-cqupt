@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.mall.cqupt.engine.dao.entity.CouponTemplateRemindDO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateRemindCancelReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateRemindCreateReqDTO;
-import com.mall.cqupt.engine.dto.req.CouponTemplateRemindPageQueryReqDTO;
-import com.mall.cqupt.engine.dto.resp.CouponTemplateRemindPageQueryRespDTO;
+import com.mall.cqupt.engine.dto.req.CouponTemplateRemindQueryReqDTO;
+import com.mall.cqupt.engine.dto.resp.CouponTemplateRemindQueryRespDTO;
+
+import java.util.List;
 
 /**
  * 优惠券预约提醒业务逻辑层
@@ -25,7 +27,7 @@ public interface CouponTemplateRemindService extends IService<CouponTemplateRemi
      *
      * @param requestParam 请求参数
      */
-    IPage<CouponTemplateRemindPageQueryRespDTO> pageQueryCouponRemind(CouponTemplateRemindPageQueryReqDTO requestParam);
+    List<CouponTemplateRemindQueryRespDTO> listCouponRemind(CouponTemplateRemindQueryReqDTO requestParam);
 
     /**
      * 取消抢券预约提醒

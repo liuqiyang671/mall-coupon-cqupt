@@ -9,7 +9,7 @@ import lombok.Data;
  */
 @Data
 @Schema(description = "分页查询优惠券预约抢券提醒参数实体")
-public class CouponTemplateRemindPageQueryReqDTO extends Page {
+public class CouponTemplateRemindQueryReqDTO extends Page {
 
 
     /**
