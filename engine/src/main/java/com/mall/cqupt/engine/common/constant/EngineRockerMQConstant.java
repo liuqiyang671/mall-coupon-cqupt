@@ -19,5 +19,11 @@ public final class EngineRockerMQConstant {
      * 提醒用户抢券 Topic Key
      */
     public static final String COUPON_TEMPLATE_REMIND_TOPIC_KEY = "one-coupon_engine-service_coupon-remind-topic${unique-name:}";
+
+    /**
+     * 提醒用户抢券消费者组 Key
+     */
+    public static final String COUPON_TEMPLATE_REMIND_CG_KEY = "one-coupon_engine-service_coupon-remind_cg${unique-name:}";
 }
+
 

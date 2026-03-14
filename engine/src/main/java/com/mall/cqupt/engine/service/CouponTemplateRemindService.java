@@ -7,6 +7,7 @@ import com.mall.cqupt.engine.dto.req.CouponTemplateRemindCancelReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateRemindCreateReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateRemindQueryReqDTO;
 import com.mall.cqupt.engine.dto.resp.CouponTemplateRemindQueryRespDTO;
+import com.mall.cqupt.engine.service.handler.remind.dto.RemindCouponTemplateDTO;
 
 import java.util.List;
 
@@ -35,5 +36,12 @@ public interface CouponTemplateRemindService extends IService<CouponTemplateRemi
      * @param requestParam 请求参数
      */
     boolean cancelCouponRemind(CouponTemplateRemindCancelReqDTO requestParam);
+
+    /**
+     * 检查是否取消抢券预约提醒
+     *
+     * @param requestParam 请求参数
+     */
+    boolean isCancelRemind(RemindCouponTemplateDTO requestParam);
 }
 

@@ -15,6 +15,7 @@ import com.mall.cqupt.engine.dto.req.CouponTemplateRemindQueryReqDTO;
 import com.mall.cqupt.engine.dto.resp.CouponTemplateRemindQueryRespDTO;
 import com.mall.cqupt.engine.service.CouponTemplateRemindService;
 import com.mall.cqupt.engine.service.CouponTemplateService;
+import com.mall.cqupt.engine.service.handler.remind.dto.RemindCouponTemplateDTO;
 import com.mall.cqupt.engine.toolkit.CouponTemplateRemindUtil;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBloomFilter;
@@ -105,5 +106,27 @@ public class CouponTemplateServiceRemindImpl extends ServiceImpl<CouponTemplateR
 
     private void add2BloomFilter(String couponTemplateId, String userId, Integer remindTime, Integer type) {
         couponTemplateCancelRemindBloomFilter.add(String.valueOf(Objects.hash(couponTemplateId, userId, remindTime, type)));
+    }
+
+    @Override
+    public boolean isCancelRemind(RemindCouponTemplateDTO requestParam) {
+        if (!couponTemplateCancelRemindBloomFilter.contains(String.valueOf(Objects.hash(requestParam.getCouponTemplateId(), requestParam.getUserId(), requestParam.getRemindTime(), requestParam.getType())))){
+            // 布隆过滤器中不存在，说明没取消提醒，此时已经能挡下大部分请求
+            return false;
+        }
+        // 对于少部分的“取消了预约”，可能是误判，此时需要去数据库中查找
+        LambdaQueryWrapper<CouponTemplateRemindDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateRemindDO.class)
+                .eq(CouponTemplateRemindDO::getUserId, requestParam.getUserId())
+                .eq(CouponTemplateRemindDO::getCouponTemplateId, requestParam.getCouponTemplateId());
+        CouponTemplateRemindDO couponTemplateRemindDO = couponTemplateRemindMapper.selectOne(queryWrapper);
+        if (null == couponTemplateRemindDO) {
+            // 数据库中没该条预约提醒，说明被取消
+            return true;
+        }
+        // 即使存在数据，也要检查该类型的该时间点是否有提醒
+        Long information = couponTemplateRemindDO.getInformation();
+        Long bitMap = CouponTemplateRemindUtil.calculateBitMap(requestParam.getRemindTime(), requestParam.getType());
+        // 按位与等于0说明用户取消了预约
+        return (bitMap & information) == 0L;
     }
 }
