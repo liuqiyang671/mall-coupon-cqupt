@@ -18,7 +18,4 @@ public interface CouponTemplateMapper extends BaseMapper<CouponTemplateDO> {
      * @return 是否发生记录变更
      */
     int decrementCouponTemplateStock(@Param("shopNumber") Long shopNumber, @Param("couponTemplateId") Long couponTemplateId, @Param("decrementStock") Long decrementStock);
-
-
-    List<CouponTemplateDO> listByShopAndIds(@Param("queryList") List<CouponTemplateQueryDTO> queryList);
 }
