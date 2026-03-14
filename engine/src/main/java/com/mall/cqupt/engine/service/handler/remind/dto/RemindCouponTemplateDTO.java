@@ -23,6 +23,12 @@ public class RemindCouponTemplateDTO {
     private String name;
 
     /**
+     * 店铺编号
+     */
+    @Schema(description = "店铺编号", example = "1810714735922956666", required = true)
+    private String shopNumber;
+
+    /**
      * 用户id
      */
     @Schema(description = "用户id", example = "1810868149847928832", required = true)
