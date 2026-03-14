@@ -8,7 +8,7 @@ import lombok.Data;
  * 分页查询抢券预约提醒接口请求参数实体
  */
 @Data
-@Schema(description = "分页查询优惠券预约抢券提醒参数实体")
+@Schema(description = "查询优惠券预约抢券提醒参数实体")
 public class CouponTemplateRemindQueryReqDTO extends Page {
 
 

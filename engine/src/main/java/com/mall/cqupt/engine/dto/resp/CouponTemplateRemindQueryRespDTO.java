@@ -94,6 +94,5 @@ public class CouponTemplateRemindQueryRespDTO {
     /**
      * 提醒类型，和提醒时间按照顺序一一对应
      */
-    @Schema(description = "提醒类型")
     private List<String> remindType;
 }
