@@ -13,14 +13,18 @@ import com.mall.cqupt.engine.dto.req.CouponTemplateRemindCancelReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateRemindCreateReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateRemindQueryReqDTO;
 import com.mall.cqupt.engine.dto.resp.CouponTemplateRemindQueryRespDTO;
+import com.mall.cqupt.engine.mq.event.CouponRemindEvent;
+import com.mall.cqupt.engine.mq.producer.CouponRemindProducer;
 import com.mall.cqupt.engine.service.CouponTemplateRemindService;
 import com.mall.cqupt.engine.service.CouponTemplateService;
 import com.mall.cqupt.engine.service.handler.remind.dto.RemindCouponTemplateDTO;
 import com.mall.cqupt.engine.toolkit.CouponTemplateRemindUtil;
+import com.mall.cqupt.framework.exception.ClientException;
 import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBloomFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,10 +44,39 @@ public class CouponTemplateServiceRemindImpl extends ServiceImpl<CouponTemplateR
     private final CouponTemplateRemindMapper couponTemplateRemindMapper;
     @Qualifier("cancelRemindBloomFilter")
     private final RBloomFilter<String> couponTemplateCancelRemindBloomFilter;
+    private final CouponRemindProducer couponRemindProducer;
 
     @Override
+    @Transactional
     public boolean createCouponRemind(CouponTemplateRemindCreateReqDTO requestParam) {
-        return false;
+        LambdaQueryWrapper<CouponTemplateRemindDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateRemindDO.class)
+                .eq(CouponTemplateRemindDO::getUserId, requestParam.getUserId())
+                .eq(CouponTemplateRemindDO::getCouponTemplateId, requestParam.getCouponTemplateId());
+        CouponTemplateRemindDO couponTemplateRemindDO = couponTemplateRemindMapper.selectOne(queryWrapper);
+        if(couponTemplateRemindDO == null){
+            // 如果没创建过提醒
+            couponTemplateRemindDO = BeanUtil.toBean(requestParam, CouponTemplateRemindDO.class);
+            couponTemplateRemindDO.setInformation(CouponTemplateRemindUtil.calculateBitMap(requestParam.getRemindTime(), requestParam.getType()));
+            couponTemplateRemindMapper.insert(couponTemplateRemindDO);
+        } else {
+            Long information = couponTemplateRemindDO.getInformation();
+            Long bitMap = CouponTemplateRemindUtil.calculateBitMap(requestParam.getRemindTime(), requestParam.getType());
+            if ((information & bitMap) != 0L) {
+                throw new ClientException("已经创建过该提醒了");
+            }
+            couponTemplateRemindDO.setInformation(information ^ bitMap);
+            couponTemplateRemindMapper.update(couponTemplateRemindDO, queryWrapper);
+        }
+        couponRemindProducer.sendMessage(BeanUtil.toBean(requestParam, CouponRemindEvent.class));
+        return true;
+//        第一次来，点击预约【5分钟-APP推送】
+//        前端传来的数据：userId = 小明, couponTemplateId = iPhone券, time = 5, type = 推送
+//        查库： 数据库里一查，小明毫无记录，couponTemplateRemindDO == null。
+//        走 if 分支：
+//        调用公式计算 calculateBitMap(5, 推送)，假设算出专属钥匙是 2（二进制 0010）。
+//        落库： 组装一条新数据，把 information 设为 2，执行 insert 插入数据库。
+//        发MQ： 给 RocketMQ 发一条延迟消息：“距离抢券差5分钟的时候，给小明发个推送”。
+//        结束： 此时数据库里有 1 行记录，information = 2。
     }
 
     @Override
@@ -83,6 +116,8 @@ public class CouponTemplateServiceRemindImpl extends ServiceImpl<CouponTemplateR
         return resp;
     }
 
+    @Override
+    @Transactional
     public boolean cancelCouponRemind(CouponTemplateRemindCancelReqDTO requestParam) {
         LambdaQueryWrapper<CouponTemplateRemindDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateRemindDO.class)
                 .eq(CouponTemplateRemindDO::getUserId, requestParam.getUserId())
