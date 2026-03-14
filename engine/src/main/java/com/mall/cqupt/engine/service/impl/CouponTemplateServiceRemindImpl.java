@@ -50,12 +50,9 @@ public class CouponTemplateServiceRemindImpl extends ServiceImpl<CouponTemplateR
             return new ArrayList<>();
         }
         // 根据优惠券id查询优惠券信息
-        List<Long> couponTemplateIds = new ArrayList<>();
-        for(CouponTemplateRemindDO couponTemplateRemindDO : couponTemplateRemindDOS){
-            couponTemplateIds.add(couponTemplateRemindDO.getCouponTemplateId());
-        }
-        List<CouponTemplateDO> couponTemplateDOS = couponTemplateService.listByIds(couponTemplateIds);
-//        List<CouponTemplateDO> couponTemplateDOS = couponTemplateService.listByIds(couponTemplateRemindDOS.stream().map(CouponTemplateRemindDO::getCouponTemplateId).collect(Collectors.toList()));
+        List<Long> couponIds = couponTemplateRemindDOS.stream().map(CouponTemplateRemindDO::getCouponTemplateId).toList();
+        List<Long> shopNumbers = couponTemplateRemindDOS.stream().map(CouponTemplateRemindDO::getShopNumber).toList();
+        List<CouponTemplateDO> couponTemplateDOS = couponTemplateService.listCouponTemplateById(couponIds, shopNumbers);
         List<CouponTemplateRemindQueryRespDTO> resp = BeanUtil.copyToList(couponTemplateDOS, CouponTemplateRemindQueryRespDTO.class);
         // 第一种实现：填充响应结果的其它信息
 //        resp.forEach(each -> {

@@ -25,6 +25,7 @@ public class CouponTemplateRemindQueryRespDTO {
     /**
      * 店铺编号
      */
+    @Schema(description = "店铺编号")
     private Long shopNumber;
 
     /**

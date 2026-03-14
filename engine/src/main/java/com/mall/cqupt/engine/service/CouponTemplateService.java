@@ -33,6 +33,5 @@ public interface CouponTemplateService extends IService<CouponTemplateDO> {
      *
      * @param couponTemplateIds 优惠券id集合
      */
-    List<CouponTemplateDO> listCouponTemplateById(List<Long> couponTemplateIds);
-
+    List<CouponTemplateDO> listCouponTemplateById(List<Long> couponTemplateIds, List<Long> shopNumbers);
 }

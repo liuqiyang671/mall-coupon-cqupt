@@ -280,9 +280,22 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     }
 
     @Override
-    public List<CouponTemplateDO> listCouponTemplateById(List<Long> couponTemplateIds) {
+    public List<CouponTemplateDO> listCouponTemplateById(List<Long> couponTemplateIds, List<Long> shopNumbers) {
+        //WHERE (
+        //    (shop_number = 'S001' AND id = 10)
+        //    OR
+        //    (shop_number = 'S002' AND id = 20)
+        //)
         LambdaQueryWrapper<CouponTemplateDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateDO.class)
-                .in(CouponTemplateDO::getId, couponTemplateIds);
+                .and(wrapper -> {
+                    for (int i = 0; i < couponTemplateIds.size(); i++) {
+                        int finalI = i; //Lambda 表达式内部如果想使用外部的局部变量，这个变量必须是 final 的，或者在逻辑上是“事实最终的（effectively final）”（即赋值后就不再改变）。
+//                        原因： for 循环里的 i 每次迭代都在执行 i++，它的值一直在变。如果你直接在 Lambda 里写 shopNumbers.get(i)，编译器会直接报错。
+//                        解法： 声明一个新的局部变量 int finalI = i;。对于每一次循环迭代，finalI 被赋值后就没有再被修改过，满足了 Lambda 的语法规范。
+                        wrapper.or(innerWrapper -> innerWrapper.eq(CouponTemplateDO::getShopNumber, shopNumbers.get(finalI))
+                                .eq(CouponTemplateDO::getId, couponTemplateIds.get(finalI)));
+                    }
+                });
         return couponTemplateMapper.selectList(queryWrapper);
     }
 }

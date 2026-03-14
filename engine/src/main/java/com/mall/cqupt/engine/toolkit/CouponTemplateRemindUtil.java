@@ -40,7 +40,7 @@ public class CouponTemplateRemindUtil {
 
         // 遍历所有可能的时间偏移节点（例如：15分钟前、30分钟前...）
         for (int i = 0; i < NEXT_TYPE_BITS; i++) {
-
+            // 按时间节点倒叙遍历，即离开抢时间最久，离现在最近
             // 遍历每个时间节点下的提醒类型（例如：0-短信，1-站内信，2-App推送）
             for (int j = 0; j < TYPE_COUNT; j++) {
 
@@ -62,5 +62,7 @@ public class CouponTemplateRemindUtil {
                 }
             }
         }
+        resp.setRemindTime(dateList);
+        resp.setRemindType(remindType);
     }
 }
