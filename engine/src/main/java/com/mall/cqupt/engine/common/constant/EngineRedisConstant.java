@@ -30,4 +30,8 @@ public final class EngineRedisConstant {
      */
     public static final String COUPON_TEMPLATE_IS_NULL_KEY = "one-coupon_engine:template_is_null:%s";
 
+    /**
+     * 检查用户是否已提醒 Key
+     */
+    public static final String COUPON_REMIND_CHECK_KEY = "one-coupon_engine:coupon-remind-check:%s_%s_%d_%d";
 }

@@ -36,9 +36,7 @@ public class CouponRemindConsumer implements RocketMQListener<MessageWrapper<Cou
         log.info("[消费者] 提醒用户抢券 - 执行消费逻辑，消息体：{}", JSON.toJSONString(messageWrapper));
         CouponRemindEvent event = messageWrapper.getMessage();
         RemindCouponTemplateDTO remindCouponTemplateDTO = BeanUtil.toBean(event, RemindCouponTemplateDTO.class);
-        if (!couponTemplateRemindService.isCancelRemind(remindCouponTemplateDTO)) {
-            // 用户没取消预约，则发出提醒
-            executeRemindCouponTemplate.executeRemindCouponTemplate(remindCouponTemplateDTO);
-        }
+        // 提醒用户
+        executeRemindCouponTemplate.executeRemindCouponTemplate(remindCouponTemplateDTO);
     }
 }
