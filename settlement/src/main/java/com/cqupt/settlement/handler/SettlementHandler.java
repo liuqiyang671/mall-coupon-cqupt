@@ -1,4 +1,6 @@
+
 package com.cqupt.settlement.handler;
 
-public interface PaymentHandler {
+
+public interface SettlementHandler {
 }

@@ -1,13 +1,11 @@
 package com.cqupt.settlement.service;
 
-
-import com.cqupt.settlement.dao.entity.OrderDO;
-
 import java.math.BigDecimal;
 import java.util.List;
 
 
-public interface OrderService {
+public interface CouponSettlementService {
+
     /**
      * 计算订单总金额
      * @param orderId 订单ID
