@@ -1,0 +1,83 @@
+package com.mall.cqupt.engine.mq.consumer;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson2.JSON;
+import com.mall.cqupt.engine.common.constant.EngineRedisConstant;
+import com.mall.cqupt.engine.common.constant.EngineRockerMQConstant;
+import com.mall.cqupt.engine.common.context.UserContext;
+import com.mall.cqupt.engine.mq.event.CanalBinlogEvent;
+import com.mall.cqupt.engine.mq.event.UserCouponDelayCloseEvent;
+import com.mall.cqupt.engine.mq.producer.UserCouponDelayCloseProducer;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
+import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.util.Date;
+import java.util.Map;
+
+/**
+ * 通过 Canal 监听用户优惠券表 Binlog 投递消息队列消费
+ * <p>
+ *     优惠券都有有效期。代码在监听到领券动作后，会根据该券的过期时间（valid_end_time），
+ *     向 RocketMQ 发送一条指定时间投递的延时消息。等时间一到，另一个消费者就会收到消息并把该券状态改为“已过期”。
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+@RocketMQMessageListener(
+        topic = EngineRockerMQConstant.USER_COUPON_BINLOG_SYNC_TOPIC_KEY,
+        consumerGroup = EngineRockerMQConstant.USER_COUPON_BINLOG_SYNC_CG_KEY
+)
+public class CanalBinlogSyncUserCouponConsumer implements RocketMQListener<CanalBinlogEvent> {
+
+    private final StringRedisTemplate stringRedisTemplate;
+    private final UserCouponDelayCloseProducer couponDelayCloseProducer;
+
+    @Value("${one-coupon.user-coupon-list.save-cache.type:direct}")
+    private String userCouponListSaveCacheType;
+
+    @Override
+        public void onMessage(CanalBinlogEvent canalBinlogEvent) {
+        if (ObjectUtil.notEqual(userCouponListSaveCacheType, "binlog")) {
+            return;
+        }
+        Map<String, Object> first = CollUtil.getFirst(canalBinlogEvent.getData());
+        String couponTemplateId = first.get("coupon_template_id").toString();
+        String userCouponId = first.get("id").toString();
+        // 用户优惠券创建事件
+        if (ObjectUtil.equal(canalBinlogEvent.getType(), "INSERT")) {
+            // 添加用户领取优惠券模板缓存记录
+            String userCouponListCacheKey = String.format(EngineRedisConstant.USER_COUPON_TEMPLATE_LIST_KEY, UserContext.getUserId());
+            String userCouponItemCacheKey = StrUtil.builder()
+                    .append(couponTemplateId)
+                    .append("_")
+                    .append(userCouponId)
+                    .toString();
+            Date receiveTime = DateUtil.parse(first.get("receive_time").toString());
+            stringRedisTemplate.opsForZSet().add(userCouponListCacheKey, userCouponItemCacheKey, receiveTime.getTime());
+
+            // 发送延时消息队列，等待优惠券到期后，将优惠券信息从缓存中删除
+            UserCouponDelayCloseEvent userCouponDelayCloseEvent = UserCouponDelayCloseEvent.builder()
+                    .couponTemplateId(couponTemplateId)
+                    .userCouponId(userCouponId)
+                    .userId(UserContext.getUserId())
+                    .build();
+            Date validEndTime = DateUtil.parse(first.get("valid_end_time").toString());
+            SendResult sendResult = couponDelayCloseProducer.sendMessage(userCouponDelayCloseEvent, validEndTime.getTime());
+
+            // 发送消息失败解决方案简单且高效的逻辑之一：打印日志并报警，通过日志搜集并重新投递
+            if (ObjectUtil.notEqual(sendResult.getSendStatus().name(), "SEND_OK")) {
+                log.warn("发送优惠券关闭延时队列失败，消息参数：{}", JSON.toJSONString(userCouponDelayCloseEvent));
+            }
+        }
+    }
+}
