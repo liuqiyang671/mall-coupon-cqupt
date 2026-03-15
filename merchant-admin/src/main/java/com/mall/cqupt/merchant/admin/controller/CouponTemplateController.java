@@ -6,6 +6,7 @@ import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateNumberReqDTO;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplatePageQueryReqDTO;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateSaveReqDTO;
 import com.mall.cqupt.merchant.admin.dto.resp.CouponTemplatePageQueryRespDTO;
+import com.mall.cqupt.merchant.admin.dto.resp.CouponTemplateQueryRespDTO;
 import com.mall.cqupt.merchant.admin.service.CouponTemplateService;
 import com.mall.cqupt.framework.result.Result;
 import com.mall.cqupt.framework.web.Results;
@@ -41,6 +42,12 @@ public class CouponTemplateController {
     @GetMapping("/api/merchant-admin/coupon-template/page")
     public Result<IPage<CouponTemplatePageQueryRespDTO>> pageQueryCouponTemplate(CouponTemplatePageQueryReqDTO requestParam) {
         return Results.success(couponTemplateService.pageQueryCouponTemplate(requestParam));
+    }
+
+    @Operation(summary = "查询优惠券模板详情")
+    @GetMapping("/api/merchant-admin/coupon-template/find")
+    public Result<CouponTemplateQueryRespDTO> findCouponTemplate(String couponTemplateId) {
+        return Results.success(couponTemplateService.findCouponTemplateById(couponTemplateId));
     }
 
     @Operation(summary = "结束优惠券模板")

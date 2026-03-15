@@ -111,6 +111,16 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         return selectPage.convert(each -> BeanUtil.toBean(each, CouponTemplatePageQueryRespDTO.class));
     }
 
+    @Override
+    public CouponTemplateQueryRespDTO findCouponTemplateById(String couponTemplateId) {
+        LambdaQueryWrapper<CouponTemplateDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateDO.class)
+                .eq(CouponTemplateDO::getShopNumber, UserContext.getShopNumber())
+                .eq(CouponTemplateDO::getId, couponTemplateId);
+
+        CouponTemplateDO couponTemplateDO = couponTemplateMapper.selectOne(queryWrapper);
+        return BeanUtil.toBean(couponTemplateDO, CouponTemplateQueryRespDTO.class);
+    }
+
     @LogRecord(
             success = TERMINATE_COUPON_TEMPLATE_LOG_CONTENT,
             type = "CouponTemplate",
