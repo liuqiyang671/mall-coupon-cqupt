@@ -10,8 +10,11 @@ import com.mall.cqupt.lqy.distribution.common.constant.DistributionRedisConstant
 import com.mall.cqupt.lqy.distribution.common.constant.DistributionRocketMQConstant;
 import com.mall.cqupt.lqy.distribution.common.enums.CouponSourceEnum;
 import com.mall.cqupt.lqy.distribution.common.enums.CouponStatusEnum;
+import com.mall.cqupt.lqy.distribution.common.enums.CouponTaskStatusEnum;
+import com.mall.cqupt.lqy.distribution.dao.entity.CouponTaskDO;
 import com.mall.cqupt.lqy.distribution.dao.entity.CouponTemplateDO;
 import com.mall.cqupt.lqy.distribution.dao.entity.UserCouponDO;
+import com.mall.cqupt.lqy.distribution.dao.mapper.CouponTaskMapper;
 import com.mall.cqupt.lqy.distribution.dao.mapper.CouponTemplateMapper;
 import com.mall.cqupt.lqy.distribution.dao.mapper.UserCouponMapper;
 import com.mall.cqupt.lqy.distribution.dao.sharding.DBShardingUtil;
@@ -42,6 +45,7 @@ public class CouponExecuteDistributionConsumer implements RocketMQListener<Messa
 
     private final UserCouponMapper userCouponMapper;
     private final StringRedisTemplate stringRedisTemplate;
+    private final CouponTaskMapper couponTaskMapper;
     private final CouponTemplateMapper couponTemplateMapper;
 
     // 触发批量保存的水位线：每攒够 5000 条，执行一次数据库 Insert
@@ -80,6 +84,13 @@ public class CouponExecuteDistributionConsumer implements RocketMQListener<Messa
             if (CollUtil.isNotEmpty(batchUserIds)) {
                 // TODO 应该添加到 t_coupon_task_fail 并标记错误原因
             }
+            // 确保所有用户都已经接到优惠券后，设置优惠券推送任务完成时间
+            CouponTaskDO couponTaskDO = CouponTaskDO.builder()
+                    .id(Long.parseLong(event.getCouponTaskId()))
+                    .status(CouponTaskStatusEnum.SUCCESS.getStatus())
+                    .completionTime(new Date())
+                    .build();
+            couponTaskMapper.updateById(couponTaskDO);
         }
     }
 
