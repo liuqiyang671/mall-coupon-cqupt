@@ -1,5 +1,6 @@
 package com.mall.cqupt.lqy.distribution.dao.sharding;
 
+import cn.hutool.core.lang.Singleton;
 import lombok.Getter;
 import org.apache.shardingsphere.infra.util.exception.ShardingSpherePreconditions;
 import org.apache.shardingsphere.sharding.api.sharding.standard.PreciseShardingValue;
@@ -24,9 +25,7 @@ public final class DBHashModShardingAlgorithm implements StandardShardingAlgorit
 
     @Override
     public String doSharding(Collection<String> availableTargetNames, PreciseShardingValue<Long> shardingValue) {
-        long id = shardingValue.getValue();
-        int dbSize = availableTargetNames.size();
-        int mod = (int) hashShardingValue(id) % shardingCount / (shardingCount / dbSize);
+        int mod = getShardingMod(shardingValue.getValue(), availableTargetNames.size());
         int index = 0;
         for (String targetName : availableTargetNames) {
             if (index == mod) {
@@ -34,7 +33,7 @@ public final class DBHashModShardingAlgorithm implements StandardShardingAlgorit
             }
             index++;
         }
-        throw new IllegalArgumentException("No target found for value: " + id);
+        throw new IllegalArgumentException("No target found for value: " + shardingValue.getValue());
     }
 
     @Override
@@ -47,6 +46,16 @@ public final class DBHashModShardingAlgorithm implements StandardShardingAlgorit
     public void init(Properties props) {
         this.props = props;
         shardingCount = getShardingCount(props);
+        Singleton.put(this);
+    }
+
+    public int getShardingMod(long id, int availableTargetSize) {
+        try {
+            return (int) hashShardingValue(id) % shardingCount / (shardingCount / availableTargetSize);
+        } catch (Throwable ex) {
+            System.out.println();
+        }
+        return (int) hashShardingValue(id) % shardingCount / (shardingCount / availableTargetSize);
     }
 
     private int getShardingCount(final Properties props) {
