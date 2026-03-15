@@ -1,0 +1,17 @@
+server:
+  port: 10000
+
+spring:
+  application:
+    name: oneCoupon-gateway
+  profiles:
+    active: dev
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  metrics:
+    tags:
+      application: ${spring.application.name}
