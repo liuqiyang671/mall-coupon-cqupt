@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
+import com.mall.cqupt.framework.exception.ClientException;
 import com.mall.cqupt.merchant.admin.common.context.UserContext;
 import com.mall.cqupt.merchant.admin.common.enums.CouponTaskSendTypeEnum;
 import com.mall.cqupt.merchant.admin.common.enums.CouponTaskStatusEnum;
@@ -19,6 +20,7 @@ import com.mall.cqupt.merchant.admin.dto.req.CouponTaskCreateReqDTO;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTaskPageQueryReqDTO;
 import com.mall.cqupt.merchant.admin.dto.resp.CouponTaskPageQueryRespDTO;
 import com.mall.cqupt.merchant.admin.dto.resp.CouponTaskQueryRespDTO;
+import com.mall.cqupt.merchant.admin.dto.resp.CouponTemplateQueryRespDTO;
 import com.mall.cqupt.merchant.admin.mq.event.CouponTaskExecuteEvent;
 import com.mall.cqupt.merchant.admin.mq.producer.CouponTaskActualExecuteProducer;
 import com.mall.cqupt.merchant.admin.service.CouponTaskService;
@@ -66,7 +68,10 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
         // 验证参数是否正确，比如文件地址是否为我们期望的格式等
         // 验证参数依赖关系，比如选择定时发送，发送时间是否不为空等
         // ......
-
+        CouponTemplateQueryRespDTO couponTemplate = couponTemplateService.findCouponTemplateById(requestParam.getCouponTemplateId());
+        if (couponTemplate == null) {
+            throw new ClientException("优惠券模板不存在，请检查提交信息是否正确");
+        }
         // 构建优惠券推送任务数据库持久层实体
         CouponTaskDO couponTaskDO = BeanUtil.copyProperties(requestParam, CouponTaskDO.class);
         couponTaskDO.setBatchId(IdUtil.getSnowflakeNextId());
