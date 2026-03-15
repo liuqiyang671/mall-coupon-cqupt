@@ -1,4 +1,4 @@
-package com.cqupt.settlement.dao.entity;
+package com.mall.cqupt.engine.dao.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;

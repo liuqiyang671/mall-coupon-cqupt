@@ -1,4 +1,4 @@
-package com.cqupt.settlement.dao.mapper;
+package com.mall.cqupt.engine.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.cqupt.settlement.dao.entity.PaymentDO;

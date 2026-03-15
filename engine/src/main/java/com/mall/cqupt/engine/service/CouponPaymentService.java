@@ -1,12 +1,14 @@
-package com.cqupt.settlement.service;
+package com.mall.cqupt.engine.service;
 
-import com.cqupt.settlement.dao.entity.PaymentDO;
-import com.cqupt.settlement.gateway.PaymentGateway;
+
+
+import com.mall.cqupt.engine.dao.entity.PaymentDO;
+import com.mall.cqupt.engine.gateway.PaymentGateway;
 
 import java.math.BigDecimal;
 
 
-public interface PaymentService {
+public interface CouponPaymentService {
     PaymentDO createPaymentRecord(Long orderId, Long userId, BigDecimal paymentAmount, String paymentMethod);
     boolean processPayment(Long paymentId, PaymentGateway paymentGateway);
 }

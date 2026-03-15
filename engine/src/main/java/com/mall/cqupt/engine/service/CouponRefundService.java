@@ -1,7 +1,7 @@
-package com.cqupt.settlement.service;
+package com.mall.cqupt.engine.service;
 
 import java.math.BigDecimal;
 
-public interface RefundService {
+public interface CouponRefundService {
     boolean processRefund(Long orderId, BigDecimal refundAmount);
 }
