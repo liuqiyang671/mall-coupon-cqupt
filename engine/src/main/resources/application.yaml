@@ -11,6 +11,7 @@ spring:
         nacos:
           discovery:
             server-addr: common-nacos-dev.magestack.cn:8848
+            enabled: false
           password: nacos
           username: nacos
       data:

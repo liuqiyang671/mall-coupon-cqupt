@@ -12,7 +12,19 @@ spring:
       host: 43.139.79.212
       port: 6379
       password: Lqy259931
+  cloud:
+    nacos:
+      discovery:
+        server-addr: common-nacos-dev.magestack.cn:8848
+        enabled: false
+      password: nacos
+      username: nacos
 
+one-coupon:
+  distribution:
+    feign:
+      remote-url:
+        engine: http://127.0.0.1:10020
 rocketmq:
   name-server: common-rocketmq-dev.magestack.cn:9876
   producer:

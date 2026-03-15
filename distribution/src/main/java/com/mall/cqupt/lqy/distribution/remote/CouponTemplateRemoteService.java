@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 /**
  * 引擎服务优惠券模板远程调用
  */
-@FeignClient(value = "oneCoupon-engine")
+@FeignClient(value = "oneCoupon-engine", url = "${one-coupon.distribution.feign.remote-url.engine:}")
 public interface CouponTemplateRemoteService {
 
     /**
