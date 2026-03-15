@@ -36,6 +36,8 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
     @Getter
     private int rowCount = 0; // 当前读取到了Excel的第几行
     private final static String STOCK_DECREMENT_AND_BATCH_SAVE_USER_RECORD_LUA_PATH = "lua/stock_decrement_and_batch_save_user_record.lua";
+    private final static int BATCH_USER_COUPON_SIZE = 5000;
+
     // 逐行处理 Excel 数据。 Excel 里有多少行用户数据，这个方法就会被触发多少次。
     @Override
     public void invoke(CouponTaskExcelObject data, AnalysisContext context) {
@@ -89,6 +91,13 @@ public class ReadExcelDistributionListener extends AnalysisEventListener<CouponT
         // 为什么是 >= 而不是 = BATCH_USER_COUPON_SIZE？
         // 考虑到有可能执行到这一步应用会宕机。假设当 batchUserSet 已经 5000 条了，消费者消费到这里宕机，当再执行 LUA 脚本到这一步时，BATCH_USER_COUPON_SIZE 已经 5001
         long batchUserSetSize = StockDecrementReturnCombinedUtil.extractSecondField(combinedField);
+
+        // 如果没有消息通知需求，仅在 batchUserSetSize = BATCH_USER_COUPON_SIZE 时发送消息消费。不满足条件仅记录执行进度即可
+        if(batchUserSetSize < BATCH_USER_COUPON_SIZE && StrUtil.isBlank(couponTask.getNotifyType())){
+            // 同步当前执行进度到缓存
+            stringRedisTemplate.opsForValue().set(templateTaskExecuteProgressKey, String.valueOf(rowCount));
+            return;
+        }
 
         // 为了避免数据库压力过大，这里通过消息队列进行削峰,解析当前发送批次并投递 MQ 进行异步削峰
         CouponTemplateExecuteEvent couponTemplateExecuteEvent = CouponTemplateExecuteEvent.builder()
