@@ -6,7 +6,7 @@ import com.cqupt.settlement.dao.entity.CouponTemplateDO;
 
 import java.util.List;
 
-public interface CouponAvailabilityService {
+public interface CouponService {
 
     /**
      * 查询用户可用的优惠券列表
