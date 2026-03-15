@@ -30,11 +30,4 @@ public class CouponTemplateController {
     public Result<CouponTemplateQueryRespDTO> findCouponTemplate(CouponTemplateQueryReqDTO requestParam) {
         return Results.success(couponTemplateService.findCouponTemplate(requestParam));
     }
-
-    @Operation(summary = "兑换优惠券模板", description = "存在较高流量场景，可类比“秒杀”业务")
-    @PostMapping("/api/engine/coupon-template/redeem")
-    public Result<Void> redeemCouponTemplate(@RequestBody CouponTemplateRedeemReqDTO requestParam) {
-        couponTemplateService.redeemCouponTemplate(requestParam);
-        return Results.success();
-    }
 }

@@ -22,13 +22,6 @@ public interface CouponTemplateService extends IService<CouponTemplateDO> {
     CouponTemplateQueryRespDTO findCouponTemplate(CouponTemplateQueryReqDTO requestParam);
 
     /**
-     * 用户兑换优惠券
-     *
-     * @param requestParam 请求参数
-     */
-    void redeemCouponTemplate(CouponTemplateRedeemReqDTO requestParam);
-
-    /**
      * 根据优惠券id集合查询出券信息
      *
      * @param couponTemplateIds 优惠券id集合
