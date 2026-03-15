@@ -18,6 +18,7 @@ import com.mall.cqupt.merchant.admin.dao.mapper.CouponTaskMapper;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTaskCreateReqDTO;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTaskPageQueryReqDTO;
 import com.mall.cqupt.merchant.admin.dto.resp.CouponTaskPageQueryRespDTO;
+import com.mall.cqupt.merchant.admin.dto.resp.CouponTaskQueryRespDTO;
 import com.mall.cqupt.merchant.admin.mq.event.CouponTaskExecuteEvent;
 import com.mall.cqupt.merchant.admin.mq.producer.CouponTaskActualExecuteProducer;
 import com.mall.cqupt.merchant.admin.service.CouponTaskService;
@@ -118,6 +119,11 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
         return selectPage.convert(each -> BeanUtil.toBean(each, CouponTaskPageQueryRespDTO.class));
     }
 
+    @Override
+    public CouponTaskQueryRespDTO findCouponTaskById(String taskId) {
+        CouponTaskDO couponTaskDO = couponTaskMapper.selectById(taskId);
+        return BeanUtil.toBean(couponTaskDO, CouponTaskQueryRespDTO.class);
+    }
     private void refreshCouponTaskSendNum(JSONObject delayJsonObject) {
         // 通过 EasyExcel 监听器获取 Excel 中所有行数
         RowCountListener listener = new RowCountListener();
