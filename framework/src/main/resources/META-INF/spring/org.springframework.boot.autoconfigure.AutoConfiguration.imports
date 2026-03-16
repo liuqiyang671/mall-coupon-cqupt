@@ -1,2 +1,2 @@
 com.mall.cqupt.framework.config.WebAutoConfiguration
-com.mall.cqupt.framework.config.NoRepeatSubmitConfiguration
+com.mall.cqupt.framework.config.IdempotentConfiguration
