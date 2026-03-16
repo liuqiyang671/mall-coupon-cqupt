@@ -86,7 +86,7 @@ public class UserCouponRedeemConsumer implements RocketMQListener<MessageWrapper
         userCouponMapper.insert(userCouponDO);
 
         // 添加用户领取优惠券模板缓存记录
-        String userCouponListCacheKey = String.format(EngineRedisConstant.USER_COUPON_TEMPLATE_LIST_KEY, UserContext.getUserId());
+        String userCouponListCacheKey = String.format(EngineRedisConstant.USER_COUPON_TEMPLATE_LIST_KEY, userId);
         String userCouponItemCacheKey = StrUtil.builder()
                 .append(requestParam.getCouponTemplateId())
                 .append("_")

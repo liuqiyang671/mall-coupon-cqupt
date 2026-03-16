@@ -84,7 +84,8 @@ public class CanalBinlogSyncUserCouponConsumer implements RocketMQListener<Canal
             UserCouponDelayCloseEvent userCouponDelayCloseEvent = UserCouponDelayCloseEvent.builder()
                     .couponTemplateId(couponTemplateId)
                     .userCouponId(userCouponId)
-                    .userId(UserContext.getUserId())
+                    .userId(first.get("user_id").toString())
+                    .delayTime(DateUtil.parse(first.get("valid_end_time").toString()).getTime())
                     .build();
             Date validEndTime = DateUtil.parse(first.get("valid_end_time").toString());
             SendResult sendResult = couponDelayCloseProducer.sendMessage(userCouponDelayCloseEvent, validEndTime.getTime());
