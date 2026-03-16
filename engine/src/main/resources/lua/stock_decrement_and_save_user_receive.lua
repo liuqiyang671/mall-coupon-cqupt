@@ -55,4 +55,4 @@ end
 -- 减少优惠券库存
 redis.call('HINCRBY', KEYS[1], 'stock', -1)
 
-return combineFields(0, userCouponCount)
+return combineFields(0, userCouponCount + 1)
