@@ -56,7 +56,7 @@ public class CanalBinlogSyncUserCouponConsumer implements RocketMQListener<Canal
         // 用户优惠券创建事件
         if (ObjectUtil.equal(canalBinlogEvent.getType(), "INSERT")) {
             // 添加用户领取优惠券模板缓存记录
-            String userCouponListCacheKey = String.format(EngineRedisConstant.USER_COUPON_TEMPLATE_LIST_KEY, UserContext.getUserId());
+            String userCouponListCacheKey = String.format(EngineRedisConstant.USER_COUPON_TEMPLATE_LIST_KEY, first.get("user_id").toString());
             String userCouponItemCacheKey = StrUtil.builder()
                     .append(couponTemplateId)
                     .append("_")
