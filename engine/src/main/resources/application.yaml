@@ -4,43 +4,40 @@ server:
 spring:
   application:
     name: mall-cqupt-lqy-engine
-    datasource:
-      driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
-      url: jdbc:shardingsphere:classpath:shardingsphere-config.yaml
-      cloud:
-        nacos:
-          discovery:
-            server-addr: common-nacos-dev.magestack.cn:8848
-            enabled: false
-          password: nacos
-          username: nacos
-      data:
-        redis:
-          host: 43.139.79.212
-          port: 6379
-          password: Lqy259931
-
-    mybatis-plus:
-      configuration:
-        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-
-    springdoc:
-      default-flat-param-object: true
-      swagger-ui:
-        path: /swagger-ui.html
-        tags-sorter: alpha
-        operations-sorter: alpha
-      api-docs:
-        path: /v3/api-docs
-      group-configs:
-        - group: 'default'
-          paths-to-match: '/**'
-          packages-to-scan: com.mall.cqupt
-
-    knife4j:
-      enable: true
-      setting:
-        language: zh_cn
+  datasource:
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+    url: jdbc:shardingsphere:classpath:shardingsphere-config.yaml
+  cloud:
+    nacos:
+      discovery:
+        server-addr: common-nacos-dev.magestack.cn:8848
+        enabled: false
+      password: nacos
+      username: nacos
+  data:
+    redis:
+      host: 43.139.79.212
+      port: 6379
+      password: Lqy259931
+  mybatis-plus:
+    configuration:
+      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  springdoc:
+    default-flat-param-object: true
+    swagger-ui:
+      path: /swagger-ui.html
+      tags-sorter: alpha
+      operations-sorter: alpha
+    api-docs:
+      path: /v3/api-docs
+    group-configs:
+      - group: 'default'
+        paths-to-match: '/**'
+        packages-to-scan: com.mall.cqupt
+  knife4j:
+    enable: true
+    setting:
+      language: zh_cn
 
 rocketmq:
   name-server: common-rocketmq-dev.magestack.cn:9876
@@ -53,8 +50,7 @@ rocketmq:
 one-coupon:
   user-coupon-list:
     save-cache:
-      #通过解析数据库日志后操作 它决定了当“用户领取优惠券”这一动作发生后，系统通过哪种方式把数据同步到 Redis 缓存中，以保证用户在“我的优惠券”列表里能立刻看到新券。
-      type: direct # 有两个选项：direct 在流程里直接操作，binlog 通过解析数据库日志后操作
+      type: direct
 
 engine:
   cache:

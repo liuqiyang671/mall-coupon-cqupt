@@ -50,6 +50,7 @@
         <easyexcel.version>4.0.1</easyexcel.version>
         <xxl-job.version>2.4.1</xxl-job.version>
         <rocketmq-spring-boot-starter.version>2.3.0</rocketmq-spring-boot-starter.version>
+        <elasticsearch-spring-boot-starter.version>2.6.12</elasticsearch-spring-boot-starter.version>
     </properties>
 
     <!-- 全局依赖，所有子模块都会自动继承-->
