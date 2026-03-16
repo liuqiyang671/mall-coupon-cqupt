@@ -11,6 +11,11 @@ import java.lang.annotation.*;
 public @interface NoMQDuplicateConsume {
 
     /**
+     * 设置防重令牌 Key 前缀
+     */
+    String keyPrefix() default "";
+
+    /**
      * 通过 SpEL 表达式生成的唯一 Key
      */
     String key();
