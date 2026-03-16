@@ -1,6 +1,8 @@
 package com.mall.cqupt.lqy.distribution.mq.consumer;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -112,14 +114,15 @@ public class CouponExecuteDistributionConsumer implements RocketMQListener<Messa
 
         // 遍历从 Redis 捞出来的真实用户 ID，组装成要插入数据库的实体对象 (DO)
         for (String each : batchUserIds) {
+            //时间改为相对时间 比如“领取后 24 小时内有效”。张三今天早上8点领，明早8点过期；李四今晚8点领，明晚8点过期。
+            DateTime validEndTime = DateUtil.offsetHour(now, JSON.parseObject(event.getCouponTemplateConsumeRule()).getInteger("validityPeriod"));
             UserCouponDO userCouponDO = UserCouponDO.builder()
                     .couponTemplateId(Long.parseLong(event.getCouponTemplateId()))
                     .userId(Long.parseLong(each)) // 从 Redis 取出的用户 ID
                     .receiveTime(now)
                     .receiveCount(1) // 业务逻辑：代表第一次领取该优惠券
                     .validStartTime(now)
-                    // 从消息体传递过来的 JSON 规则中解析出该优惠券的过期时间
-                    .validEndTime(JSON.parseObject(event.getCouponTemplateConsumeRule()).getDate("validityPeriod"))
+                    .validEndTime(validEndTime)
                     .source(CouponSourceEnum.PLATFORM.getType())
                     .status(CouponStatusEnum.EFFECTIVE.getType())
                     .createTime(now)
