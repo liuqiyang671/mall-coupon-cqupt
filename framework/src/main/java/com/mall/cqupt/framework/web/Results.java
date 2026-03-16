@@ -33,7 +33,7 @@ public final class Results {
     /**
      * 构建服务端失败响应
      */
-    protected static Result<Void> failure() {
+    public static Result<Void> failure() {
         return new Result<Void>()
                 .setCode(BaseErrorCode.SERVICE_ERROR.code())
                 .setMessage(BaseErrorCode.SERVICE_ERROR.message());
