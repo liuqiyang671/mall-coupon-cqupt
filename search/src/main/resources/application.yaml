@@ -6,8 +6,8 @@ spring:
       host: 43.139.79.212
       port: 6379
       password: Lqy259931
-#  elasticsearch:
-#    uris: http://127.0.0.1:9200
+  elasticsearch:
+    uris: http://43.139.79.212:9200
 server:
   port: 10050
 
@@ -23,8 +23,8 @@ cloud:
 #      host: 43.139.79.212
 #      port: 6379
 #      password: Lqy259931
-  elasticsearch:
-    uris: 127.0.0.1:9200
+#  elasticsearch:
+#    uris: 127.0.0.1:9200
 
 springdoc:
   default-flat-param-object: true

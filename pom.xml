@@ -23,6 +23,7 @@
         <module>merchant-admin</module>
         <!-- 引擎模块：负责优惠券单个查看、列表查看、锁定以及核销等功能 -->
         <module>engine</module>
+        <!-- 网关模块：提供动态路由、日志记录以及限流熔断等功能 -->
         <module>gateway</module>
     </modules>
 
