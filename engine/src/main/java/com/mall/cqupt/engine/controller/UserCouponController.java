@@ -32,6 +32,13 @@ public class UserCouponController {
         return Results.success();
     }
 
+    @Operation(summary = "兑换优惠券模板之消息队列", description = "存在较高流量场景，可类比“秒杀”业务")
+    @PostMapping("/api/engine/user-coupon/redeem-mq")
+    public Result<Void> redeemUserCouponByMQ(@RequestBody CouponTemplateRedeemReqDTO requestParam) {
+        userCouponService.redeemUserCouponByMQ(requestParam);
+        return Results.success();
+    }
+
     @Operation(summary = "创建用户优惠券结算单", description = "用户下单时锁定使用的优惠券，一般由订单系统发起调用")
     @PostMapping("/api/engine/user-coupon/create-payment-record")
     public Result<Void> createPaymentRecord(@RequestBody CouponCreatePaymentReqDTO requestParam) {
