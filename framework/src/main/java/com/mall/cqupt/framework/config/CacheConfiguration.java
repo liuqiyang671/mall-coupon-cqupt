@@ -1,7 +1,5 @@
-package com.cqupt.settlement.config;
+package com.mall.cqupt.framework.config;
 
-import com.mall.cqupt.framework.config.RedisDistributedProperties;
-import com.mall.cqupt.framework.config.RedisKeySerializer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +12,7 @@ import java.util.Optional;
  */
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(com.mall.cqupt.framework.config.RedisDistributedProperties.class)
+@EnableConfigurationProperties(RedisDistributedProperties.class)
 public class CacheConfiguration {
 
     private final RedisDistributedProperties redisDistributedProperties;
@@ -23,7 +21,7 @@ public class CacheConfiguration {
      * 创建 Redis Key 序列化器，可自定义 Key Prefix
      */
     @Bean
-    public com.mall.cqupt.framework.config.RedisKeySerializer redisKeySerializer() {
+    public RedisKeySerializer redisKeySerializer() {
         String prefix = Optional.ofNullable(redisDistributedProperties.getPrefix()).orElse("");
         String prefixCharset = redisDistributedProperties.getPrefixCharset();
         return new RedisKeySerializer(prefix, prefixCharset);

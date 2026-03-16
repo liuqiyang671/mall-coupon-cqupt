@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
+import com.mall.cqupt.engine.common.context.UserContext;
 import com.mall.cqupt.engine.dao.entity.CouponTemplateDO;
 import com.mall.cqupt.engine.dao.entity.CouponTemplateRemindDO;
 import com.mall.cqupt.engine.dao.mapper.CouponTemplateRemindMapper;
@@ -155,6 +156,9 @@ public class CouponTemplateServiceRemindImpl extends ServiceImpl<CouponTemplateR
         }
         // 取消提醒这个信息添加到布隆过滤器中   感觉实际中不需要将取消优惠券消息加入布隆过滤器
         add2BloomFilter(requestParam.getCouponTemplateId(), requestParam.getUserId(), requestParam.getRemindTime(), requestParam.getType());
+
+        // 删除用户预约提醒的缓存信息，通过更新数据库删除缓存策略保障数据库和缓存一致性
+        stringRedisTemplate.delete(String.format(USER_COUPON_TEMPLATE_REMIND_INFORMATION, UserContext.getUserId()));
         return true;
     }
 

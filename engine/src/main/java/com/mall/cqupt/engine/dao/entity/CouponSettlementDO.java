@@ -8,53 +8,42 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 支付数据库持久层
+ * 优惠券结算实体
  */
 @Data
+@TableName("t_coupon_settlement")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@TableName("t_payment")
-public class PaymentDO {
+public class CouponSettlementDO {
 
     /**
-     * 支付ID
+     * id
      */
     private Long id;
 
     /**
-     * 订单ID
+     * 订单id
      */
     private Long orderId;
 
     /**
-     * 用户ID
+     * 用户id
      */
     private Long userId;
 
     /**
-     * 支付金额
+     * 优惠券id
      */
-    private BigDecimal paymentAmount;
+    private Long couponId;
 
     /**
-     * 支付方式
+     * 结算单状态 0：锁定 1：已取消 2：已支付 3：已退款
      */
-    private String paymentMethod;
-
-    /**
-     * 支付状态
-     */
-    private Integer paymentStatus;
-
-    /**
-     * 支付时间
-     */
-    private Date paymentTime;
+    private Integer status;
 
     /**
      * 创建时间
@@ -67,10 +56,4 @@ public class PaymentDO {
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date updateTime;
-
-    /**
-     * 删除标识 0：未删除 1：已删除
-     */
-    @TableField(fill = FieldFill.INSERT)
-    private Integer delFlag;
 }
