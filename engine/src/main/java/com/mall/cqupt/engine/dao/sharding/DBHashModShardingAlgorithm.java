@@ -10,6 +10,7 @@ import org.apache.shardingsphere.sharding.exception.algorithm.sharding.ShardingA
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -48,7 +49,10 @@ public final class DBHashModShardingAlgorithm implements StandardShardingAlgorit
     public void init(Properties props) {
         this.props = props;
         shardingCount = getShardingCount(props);
-        Singleton.put(this);
+        Object businessTag = props.get("business-tag");
+        if (Objects.nonNull(businessTag) && Objects.equals(businessTag.toString(), "coupon-template")) {
+            Singleton.put("coupon-template", this);
+        }
     }
 
     private int getShardingCount(final Properties props) {

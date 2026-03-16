@@ -13,8 +13,10 @@ public final class DBShardingUtil {
     /**
      * 获取数据库分片算法类，在该类初始化时向 Singleton 放入实例
      */
-    private static final DBHashModShardingAlgorithm dbShardingAlgorithm = Singleton.get(DBHashModShardingAlgorithm.class);
-
+    private static final DBHashModShardingAlgorithm COUPON_TEMPLATE_DB_SHARDING_ALGORITHM = Singleton.get(
+            "coupon-template",
+            DBHashModShardingAlgorithm.class
+    );
     /**
      * 解决查询商家优惠券 IN 场景跨库表不存在问题
      *
@@ -22,7 +24,7 @@ public final class DBShardingUtil {
      * @return 返回 shopNumber 所在的数据源
      */
     public static int doCouponCouponSharding(Long shopNumber) {
-        return dbShardingAlgorithm.getShardingMod(shopNumber, getAvailableDatabases().size());
+        return COUPON_TEMPLATE_DB_SHARDING_ALGORITHM.getShardingMod(shopNumber, getAvailableDatabases().size());
     }
 
     /**

@@ -66,6 +66,7 @@ rules:
           algorithmClassName: com.mall.cqupt.engine.dao.sharding.DBHashModShardingAlgorithm
           sharding-count: 16 # 分片总数量
           strategy: standard # 分片类型，单字段分片
+          business-tag: coupon-template # 自定义业务标签
       coupon_template_table_mod: # 优惠券分表算法定义
         type: CLASS_BASED # 根据自定义库分片算法类进行分片
         props: # 分片相关属性
