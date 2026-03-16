@@ -8,7 +8,7 @@ import java.lang.annotation.*;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface NoMQRepeatConsume {
+public @interface NoMQDuplicateConsume {
 
     /**
      * 通过 SpEL 表达式生成的唯一 Key

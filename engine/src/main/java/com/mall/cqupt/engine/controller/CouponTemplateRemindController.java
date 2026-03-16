@@ -6,7 +6,7 @@ import com.mall.cqupt.engine.dto.req.CouponTemplateRemindCreateReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateRemindQueryReqDTO;
 import com.mall.cqupt.engine.dto.resp.CouponTemplateRemindQueryRespDTO;
 import com.mall.cqupt.engine.service.CouponTemplateRemindService;
-import com.mall.cqupt.framework.idempotent.NoRepeatSubmit;
+import com.mall.cqupt.framework.idempotent.NoDuplicateSubmit;
 import com.mall.cqupt.framework.result.Result;
 import com.mall.cqupt.framework.web.Results;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,7 +30,7 @@ public class CouponTemplateRemindController {
     private final CouponTemplateRemindService couponTemplateRemindService;
 
     @Operation(summary = "发出优惠券预约提醒请求")
-    @NoRepeatSubmit(message = "请勿短时间内重复提交预约提醒请求")
+    @NoDuplicateSubmit(message = "请勿短时间内重复提交预约提醒请求")
     @PostMapping("/api/engine/coupon-template-remind/create")
     public Result<Boolean> createCouponRemind(@RequestBody CouponTemplateRemindCreateReqDTO requestParam) {
         return Results.success(couponTemplateRemindService.createCouponRemind(requestParam));
@@ -43,7 +43,7 @@ public class CouponTemplateRemindController {
     }
 
     @Operation(summary = "取消优惠券预约提醒")
-    @NoRepeatSubmit(message = "请勿短时间内重复提交取消预约提醒请求")
+    @NoDuplicateSubmit(message = "请勿短时间内重复提交取消预约提醒请求")
     @PostMapping("/api/engine/coupon-template-remind/cancel")
     public Result<Boolean> cancelCouponRemind(@RequestBody CouponTemplateRemindCancelReqDTO requestParam) {
         return Results.success(couponTemplateRemindService.cancelCouponRemind(requestParam));
