@@ -44,4 +44,9 @@ public final class EngineRedisConstant {
      * 创建优惠券结算单分布式锁 Key
      */
     public static final String LOCK_CREATE_PAYMENT_RECORD_KEY = "one-coupon_engine:lock:create-payment-record:%d";
+
+    /**
+     * 优惠券结算单分布式锁 Key
+     */
+    public static final String LOCK_COUPON_SETTLEMENT_KEY = "one-coupon_engine:lock:coupon-settlement:%d";
 }

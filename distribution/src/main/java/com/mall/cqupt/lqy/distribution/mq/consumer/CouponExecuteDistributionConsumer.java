@@ -3,13 +3,19 @@ package com.mall.cqupt.lqy.distribution.mq.consumer;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.lang.Singleton;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mall.cqupt.lqy.distribution.common.constant.DistributionRedisConstant;
 import com.mall.cqupt.lqy.distribution.common.constant.DistributionRocketMQConstant;
+import com.mall.cqupt.lqy.distribution.common.constant.EngineRedisConstant;
 import com.mall.cqupt.lqy.distribution.common.enums.CouponSourceEnum;
 import com.mall.cqupt.lqy.distribution.common.enums.CouponStatusEnum;
 import com.mall.cqupt.lqy.distribution.common.enums.CouponTaskStatusEnum;
@@ -23,14 +29,21 @@ import com.mall.cqupt.lqy.distribution.dao.sharding.DBShardingUtil;
 import com.mall.cqupt.lqy.distribution.mq.base.MessageWrapper;
 import com.mall.cqupt.lqy.distribution.mq.event.CouponTemplateExecuteEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.executor.BatchExecutorException;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 /**

@@ -2,6 +2,8 @@ package com.mall.cqupt.engine.controller;
 
 
 import com.mall.cqupt.engine.dto.req.CouponCreatePaymentReqDTO;
+import com.mall.cqupt.engine.dto.req.CouponProcessPaymentReqDTO;
+import com.mall.cqupt.engine.dto.req.CouponProcessRefundReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateRedeemReqDTO;
 import com.mall.cqupt.engine.service.CouponPayService;
 import com.mall.cqupt.engine.service.UserCouponService;
@@ -43,6 +45,21 @@ public class UserCouponController {
     @PostMapping("/api/engine/user-coupon/create-payment-record")
     public Result<Void> createPaymentRecord(@RequestBody CouponCreatePaymentReqDTO requestParam) {
         couponPayService.createPaymentRecord(requestParam);
+        return Results.success();
+    }
+
+
+    @Operation(summary = "核销优惠券结算单", description = "用户支付后核销使用的优惠券，常规来说应该监听支付后的消息队列事件")
+    @PostMapping("/api/engine/user-coupon/process-payment")
+    public Result<Void> processPayment(@RequestBody CouponProcessPaymentReqDTO requestParam) {
+        couponPayService.processPayment(requestParam);
+        return Results.success();
+    }
+
+    @Operation(summary = "退款优惠券结算单", description = "用户退款成功后返回使用的优惠券，常规来说应该监听退款成功后的消息队列事件")
+    @PostMapping("/api/engine/user-coupon/process-refund")
+    public Result<Void> processRefund(@RequestBody CouponProcessRefundReqDTO requestParam) {
+        couponPayService.processRefund(requestParam);
         return Results.success();
     }
 }
