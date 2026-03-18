@@ -7,5 +7,6 @@
     <file url="file://$PROJECT_DIR$/resources/database/coupon_template.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/resources/database/coupon_user_coupon01.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/resources/database/coupon_user_coupon02.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/resources/database/onecoupon.sql" dialect="GenericSQL" />
   </component>
 </project>
