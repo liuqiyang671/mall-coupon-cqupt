@@ -6,6 +6,10 @@ import com.cqupt.settlement.dao.entity.CouponTemplateDO;
 import com.cqupt.settlement.dao.entity.DiscountCouponDO;
 import com.cqupt.settlement.dao.entity.FixedDiscountCouponDO;
 import com.cqupt.settlement.dao.entity.ThresholdCouponDO;
+import com.cqupt.settlement.service.strategy.CouponCalculationStrategy;
+import com.cqupt.settlement.service.strategy.DiscountCalculationStrategy;
+import com.cqupt.settlement.service.strategy.FixedDiscountCalculationStrategy;
+import com.cqupt.settlement.service.strategy.ThresholdCalculationStrategy;
 
 import java.util.Map;
 
@@ -28,6 +32,24 @@ public class CouponFactory {
             case DISCOUNT_COUPON:
                 Double discountRate = (Double) additionalParams.get("discountRate");
                 return new DiscountCouponDO(coupon, discountRate);
+            default:
+                throw new IllegalArgumentException("Invalid coupon type");
+        }
+    }
+    /**
+     * 获取优惠券计算策略。
+     *
+     * @param coupon 基础优惠券模板对象
+     * @return 对应的优惠券计算策略
+     */
+    public static CouponCalculationStrategy getCouponCalculationStrategy(CouponTemplateDO coupon) {
+        switch (DiscountTypeEnum.values()[coupon.getType()]) {
+            case FIXED_DISCOUNT:
+                return new FixedDiscountCalculationStrategy();
+            case THRESHOLD_DISCOUNT:
+                return new ThresholdCalculationStrategy();
+            case DISCOUNT_COUPON:
+                return new DiscountCalculationStrategy();
             default:
                 throw new IllegalArgumentException("Invalid coupon type");
         }
