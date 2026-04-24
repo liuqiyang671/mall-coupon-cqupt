@@ -26,6 +26,11 @@ public class UserDO {
     private Long id;
 
     /**
+     * 用户角色 0：平台人员 1：商家 2：普通用户
+     */
+    private Integer roleType;
+
+    /**
      * 店铺编号
      */
     private String shopNumber;
@@ -41,6 +46,16 @@ public class UserDO {
     private String password;
 
     /**
+     * 昵称
+     */
+    private String nickname;
+
+    /**
+     * 真实姓名
+     */
+    private String realName;
+
+    /**
      * 手机号
      */
     private String phone;
@@ -49,6 +64,26 @@ public class UserDO {
      * 邮箱
      */
     private String mail;
+
+    /**
+     * 头像地址
+     */
+    private String avatarUrl;
+
+    /**
+     * 账号状态 0：正常 1：禁用
+     */
+    private Integer status;
+
+    /**
+     * 激活状态 0：未激活 1：已激活
+     */
+    private Integer activationStatus;
+
+    /**
+     * 最后登录时间
+     */
+    private Date lastLoginTime;
 
     /**
      * 创建时间

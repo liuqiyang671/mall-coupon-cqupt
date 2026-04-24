@@ -98,13 +98,13 @@ rules:
       user_coupon_settlement_database_mod:
         type: CLASS_BASED
         props:
-          algorithmClassName: com.nageoffer.onecoupon.engine.dao.sharding.DBHashModShardingAlgorithm
+          algorithmClassName: com.mall.cqupt.engine.dao.sharding.DBHashModShardingAlgorithm
           sharding-count: 16
           strategy: standard
       user_coupon_settlement_table_mod:
         type: CLASS_BASED
         props:
-          algorithmClassName: com.nageoffer.onecoupon.engine.dao.sharding.TableHashModShardingAlgorithm
+          algorithmClassName: com.mall.cqupt.engine.dao.sharding.TableHashModShardingAlgorithm
           strategy: standard
 props:
   # 配置 ShardingSphere 默认打印 SQL 执行语句

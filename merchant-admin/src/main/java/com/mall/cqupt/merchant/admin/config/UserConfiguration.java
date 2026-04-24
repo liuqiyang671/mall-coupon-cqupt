@@ -1,51 +1,82 @@
 package com.mall.cqupt.merchant.admin.config;
 
+import cn.hutool.core.util.StrUtil;
+import com.mall.cqupt.merchant.admin.common.constant.MerchantAdminRedisConstant;
 import com.mall.cqupt.merchant.admin.common.context.UserContext;
 import com.mall.cqupt.merchant.admin.common.context.UserInfoDTO;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/**
- * 用户相关配置类
- * 通过 Spring MVC 拦截器结合 ThreadLocal，在请求到达业务层前统一注入并维护当前登录用户的信息，执行完后清除用户信息
- */
 @Configuration
+@RequiredArgsConstructor
 public class UserConfiguration implements WebMvcConfigurer {
 
-    /**
-     * 用户信息传输拦截器
-     */
+    private final JWTUtil jwtUtil;
+    private final StringRedisTemplate stringRedisTemplate;
+
     @Bean
     public UserTransmitInterceptor userTransmitInterceptor() {
-        return new UserTransmitInterceptor();
+        return new UserTransmitInterceptor(jwtUtil, stringRedisTemplate);
     }
 
-    /**
-     * 添加用户信息传递过滤器至相关路径拦截
-     */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(userTransmitInterceptor())
-                .addPathPatterns("/**");
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/api/merchant-admin/user/register",
+                        "/api/merchant-admin/user/login",
+                        "/api/merchant-admin/auth/register",
+                        "/api/merchant-admin/auth/login",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/knife4j/**",
+                        "/webjars/**"
+                );
     }
 
-    /**
-     * 用户信息传输拦截器
-     */
+    @RequiredArgsConstructor
     static class UserTransmitInterceptor implements HandlerInterceptor {
+
+        private final JWTUtil jwtUtil;
+        private final StringRedisTemplate stringRedisTemplate;
 
         @Override
         public boolean preHandle(@Nullable HttpServletRequest request, @Nullable HttpServletResponse response, @Nullable Object handler) throws Exception {
-            // 用户属于非核心功能，这里先通过模拟的形式代替。后续如果需要后管展示，会重构该代码
-            UserInfoDTO userInfoDTO = new UserInfoDTO("1810518709471555585", "pdd45305558318", 1810714735922956666L);
-            UserContext.setUser(userInfoDTO);
-            return true;
+            if (request == null) {
+                return true;
+            }
+            String token = request.getHeader("Authorization");
+            if (StrUtil.isNotBlank(token) && token.startsWith("Bearer ")) {
+                token = token.substring(7);
+                UserInfoDTO userInfoDTO = jwtUtil.parseToken(token);
+                if (userInfoDTO != null && isSessionValid(userInfoDTO, token)) {
+                    UserContext.setUser(userInfoDTO);
+                    return true;
+                }
+            }
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"code\":\"A000001\",\"message\":\"未登录或登录已过期\",\"data\":null,\"requestId\":null}");
+            return false;
+        }
+
+        private boolean isSessionValid(UserInfoDTO userInfoDTO, String token) {
+            if (StrUtil.isBlank(userInfoDTO.getUserId()) || userInfoDTO.getRoleType() == null) {
+                return false;
+            }
+            String tokenKey = String.format(MerchantAdminRedisConstant.USER_TOKEN_KEY, userInfoDTO.getRoleType(), userInfoDTO.getUserId());
+            String savedToken = stringRedisTemplate.opsForValue().get(tokenKey);
+            return StrUtil.equals(savedToken, token);
         }
 
         @Override

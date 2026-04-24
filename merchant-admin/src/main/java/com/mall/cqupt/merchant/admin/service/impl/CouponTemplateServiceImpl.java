@@ -14,6 +14,7 @@ import com.mall.cqupt.framework.exception.ServiceException;
 import com.mall.cqupt.merchant.admin.common.constant.MerchantAdminRedisConstant;
 import com.mall.cqupt.merchant.admin.common.context.UserContext;
 import com.mall.cqupt.merchant.admin.common.enums.CouponTemplateStatusEnum;
+import com.mall.cqupt.merchant.admin.common.enums.UserRoleEnum;
 import com.mall.cqupt.merchant.admin.dao.entity.CouponTemplateDO;
 import com.mall.cqupt.merchant.admin.dao.mapper.CouponTemplateMapper;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTemplateNumberReqDTO;
@@ -55,6 +56,8 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     )
     @Override
     public void createCouponTemplate(CouponTemplateSaveReqDTO requestParam) {
+        checkMerchantPermission();
+
         // 通过责任链验证请求参数是否正确
         merchantAdminChainContext.handler(MERCHANT_ADMIN_CREATE_COUPON_TEMPLATE_KEY.name(), requestParam);
 
@@ -96,6 +99,8 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     @Override
     public IPage<CouponTemplatePageQueryRespDTO> pageQueryCouponTemplate(CouponTemplatePageQueryReqDTO requestParam) {
+        checkMerchantPermission();
+
         // 构建分页查询模板 LambdaQueryWrapper
         LambdaQueryWrapper<CouponTemplateDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateDO.class)
                 .eq(CouponTemplateDO::getShopNumber, UserContext.getShopNumber())
@@ -113,6 +118,8 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     @Override
     public CouponTemplateQueryRespDTO findCouponTemplateById(String couponTemplateId) {
+        checkMerchantPermission();
+
         LambdaQueryWrapper<CouponTemplateDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateDO.class)
                 .eq(CouponTemplateDO::getShopNumber, UserContext.getShopNumber())
                 .eq(CouponTemplateDO::getId, couponTemplateId);
@@ -128,6 +135,8 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     )
     @Override
     public void terminateCouponTemplate(String couponTemplateId) {
+        checkMerchantPermission();
+
         // 验证是否存在数据横向越权
         LambdaQueryWrapper<CouponTemplateDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateDO.class)
                 .eq(CouponTemplateDO::getShopNumber, UserContext.getShopNumber())
@@ -167,6 +176,8 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     )
     @Override
     public void increaseNumberCouponTemplate(CouponTemplateNumberReqDTO requestParam) {
+        checkMerchantPermission();
+
         // 验证是否存在数据横向越权
         LambdaQueryWrapper<CouponTemplateDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateDO.class)
                 .eq(CouponTemplateDO::getShopNumber, UserContext.getShopNumber())
@@ -194,5 +205,10 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         // 增加优惠券模板缓存库存发行量
         String couponTemplateCacheKey = String.format(MerchantAdminRedisConstant.COUPON_TEMPLATE_KEY, requestParam.getCouponTemplateId());
         stringRedisTemplate.opsForHash().increment(couponTemplateCacheKey, "stock", requestParam.getNumber());
+    }
+    private void checkMerchantPermission() {
+        if (!UserRoleEnum.MERCHANT.getType().equals(UserContext.getRoleType()) || UserContext.getShopNumber() == null) {
+            throw new ClientException("当前功能仅商家角色可操作");
+        }
     }
 }

@@ -1,12 +1,12 @@
 package com.mall.cqupt.merchant.admin.common.constant;
 
-/**
- * 商家后管优惠券 Redis 常量类
- */
 public final class MerchantAdminRedisConstant {
 
-    /**
-     * 优惠券模板缓存 Key
-     */
     public static final String COUPON_TEMPLATE_KEY = "one-coupon_engine:template:%s";
+
+    public static final String USER_LOGIN_FAIL_COUNT_KEY = "one-coupon_merchant-admin:user:login-fail:%s:%s";
+
+    public static final String USER_LOGIN_LOCK_KEY = "one-coupon_merchant-admin:user:login-lock:%s:%s";
+
+    public static final String USER_TOKEN_KEY = "one-coupon_merchant-admin:user:token:%s:%s";
 }

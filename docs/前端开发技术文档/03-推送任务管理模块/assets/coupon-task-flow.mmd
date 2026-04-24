@@ -1,0 +1,8 @@
+flowchart TD
+  list[任务列表] --> create[新建任务]
+  create --> selectTemplate[选择优惠券模板]
+  selectTemplate --> upload[填写名单文件地址]
+  upload --> notify[选择通知方式]
+  notify --> submit[提交任务]
+  submit --> status[列表展示状态]
+  status --> detail[查看任务详情]

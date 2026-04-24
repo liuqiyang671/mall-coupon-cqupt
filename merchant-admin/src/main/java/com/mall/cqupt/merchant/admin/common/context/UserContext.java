@@ -44,6 +44,16 @@ public final class UserContext {
     }
 
     /**
+     * 获取上下文中用户角色
+     *
+     * @return 用户角色
+     */
+    public static Integer getRoleType() {
+        UserInfoDTO userInfoDTO = USER_THREAD_LOCAL.get();
+        return Optional.ofNullable(userInfoDTO).map(UserInfoDTO::getRoleType).orElse(null);
+    }
+
+    /**
      * 获取上下文中用户店铺编号
      *
      * @return 用户店铺编号

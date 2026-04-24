@@ -1,0 +1,7 @@
+flowchart TD
+  order[订单确认页] --> row[优惠券摘要行]
+  row --> drawer[优惠券选择抽屉]
+  drawer --> available[可用券列表]
+  drawer --> unavailable[不可用券列表]
+  available --> confirm[确认使用]
+  confirm --> summary[更新价格摘要]

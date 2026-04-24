@@ -14,6 +14,7 @@ import com.mall.cqupt.framework.exception.ClientException;
 import com.mall.cqupt.merchant.admin.common.context.UserContext;
 import com.mall.cqupt.merchant.admin.common.enums.CouponTaskSendTypeEnum;
 import com.mall.cqupt.merchant.admin.common.enums.CouponTaskStatusEnum;
+import com.mall.cqupt.merchant.admin.common.enums.UserRoleEnum;
 import com.mall.cqupt.merchant.admin.dao.entity.CouponTaskDO;
 import com.mall.cqupt.merchant.admin.dao.mapper.CouponTaskMapper;
 import com.mall.cqupt.merchant.admin.dto.req.CouponTaskCreateReqDTO;
@@ -64,6 +65,8 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void createCouponTask(CouponTaskCreateReqDTO requestParam) {
+        checkMerchantPermission();
+
         // 验证非空参数
         // 验证参数是否正确，比如文件地址是否为我们期望的格式等
         // 验证参数依赖关系，比如选择定时发送，发送时间是否不为空等
@@ -109,6 +112,8 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
 
     @Override
     public IPage<CouponTaskPageQueryRespDTO> pageQueryCouponTask(CouponTaskPageQueryReqDTO requestParam) {
+        checkMerchantPermission();
+
         // 构建分页查询模板 LambdaQueryWrapper
         LambdaQueryWrapper<CouponTaskDO> queryWrapper = Wrappers.lambdaQuery(CouponTaskDO.class)
                 .eq(CouponTaskDO::getShopNumber, UserContext.getShopNumber()) // 商户编号
@@ -126,9 +131,21 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
 
     @Override
     public CouponTaskQueryRespDTO findCouponTaskById(String taskId) {
-        CouponTaskDO couponTaskDO = couponTaskMapper.selectById(taskId);
+        checkMerchantPermission();
+
+        LambdaQueryWrapper<CouponTaskDO> queryWrapper = Wrappers.lambdaQuery(CouponTaskDO.class)
+                .eq(CouponTaskDO::getId, taskId)
+                .eq(CouponTaskDO::getShopNumber, UserContext.getShopNumber());
+        CouponTaskDO couponTaskDO = couponTaskMapper.selectOne(queryWrapper);
         return BeanUtil.toBean(couponTaskDO, CouponTaskQueryRespDTO.class);
     }
+
+    private void checkMerchantPermission() {
+        if (!UserRoleEnum.MERCHANT.getType().equals(UserContext.getRoleType()) || UserContext.getShopNumber() == null) {
+            throw new ClientException("当前功能仅商家角色可操作");
+        }
+    }
+
     private void refreshCouponTaskSendNum(JSONObject delayJsonObject) {
         // 通过 EasyExcel 监听器获取 Excel 中所有行数
         RowCountListener listener = new RowCountListener();

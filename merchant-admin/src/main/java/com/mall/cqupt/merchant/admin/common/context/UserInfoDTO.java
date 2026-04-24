@@ -25,7 +25,19 @@ public class UserInfoDTO {
     private String username;
 
     /**
+     * 用户角色 0：平台人员 1：商家 2：普通用户
+     */
+    private Integer roleType;
+
+    /**
      * 店铺编号
      */
     private Long shopNumber;
+
+    public UserInfoDTO(String userId, String username, Long shopNumber) {
+        this.userId = userId;
+        this.username = username;
+        this.roleType = 1;
+        this.shopNumber = shopNumber;
+    }
 }

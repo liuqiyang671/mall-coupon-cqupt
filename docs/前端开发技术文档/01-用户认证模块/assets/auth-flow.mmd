@@ -1,0 +1,8 @@
+flowchart TD
+  login[登录页] --> submit[提交账号密码]
+  submit --> success{后端认证成功}
+  success -->|是| store[保存 Token 与用户信息]
+  store --> dashboard[进入商家后台]
+  success -->|否| error[展示错误并保留用户名]
+  dashboard --> logout[退出或过期]
+  logout --> login

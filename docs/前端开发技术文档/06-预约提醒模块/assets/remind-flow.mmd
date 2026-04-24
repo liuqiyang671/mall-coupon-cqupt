@@ -1,0 +1,6 @@
+flowchart TD
+  coupon[未开始优惠券] --> remind[开抢提醒按钮]
+  remind --> dialog[提醒设置弹窗]
+  dialog --> create[创建提醒接口]
+  create --> success[已预约]
+  success --> cancel[取消提醒]

@@ -42,16 +42,25 @@ import static com.mall.cqupt.engine.common.constant.EngineRedisConstant.USER_COU
 
  */
 @Service
-@RequiredArgsConstructor
 public class CouponTemplateServiceRemindImpl extends ServiceImpl<CouponTemplateRemindMapper, CouponTemplateRemindDO> implements CouponTemplateRemindService {
 
     private final CouponTemplateService couponTemplateService;
     private final CouponTemplateRemindMapper couponTemplateRemindMapper;
-    @Qualifier("cancelRemindBloomFilter")
     private final RBloomFilter<String> couponTemplateCancelRemindBloomFilter;
     private final CouponRemindProducer couponRemindProducer;
     private final StringRedisTemplate stringRedisTemplate;
 
+    public CouponTemplateServiceRemindImpl(CouponTemplateService couponTemplateService,
+                                           CouponTemplateRemindMapper couponTemplateRemindMapper,
+                                           @Qualifier("cancelRemindBloomFilter") RBloomFilter<String> couponTemplateCancelRemindBloomFilter,
+                                           CouponRemindProducer couponRemindProducer,
+                                           StringRedisTemplate stringRedisTemplate) {
+        this.couponTemplateService = couponTemplateService;
+        this.couponTemplateRemindMapper = couponTemplateRemindMapper;
+        this.couponTemplateCancelRemindBloomFilter = couponTemplateCancelRemindBloomFilter;
+        this.couponRemindProducer = couponRemindProducer;
+        this.stringRedisTemplate = stringRedisTemplate;
+    }
     @Override
     @Transactional
     public boolean createCouponRemind(CouponTemplateRemindCreateReqDTO requestParam) {
