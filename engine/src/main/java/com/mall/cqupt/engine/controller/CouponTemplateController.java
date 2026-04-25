@@ -1,8 +1,9 @@
 package com.mall.cqupt.engine.controller;
 
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.mall.cqupt.engine.dto.req.CouponTemplatePageQueryReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateQueryReqDTO;
-import com.mall.cqupt.engine.dto.req.CouponTemplateRedeemReqDTO;
 import com.mall.cqupt.engine.dto.resp.CouponTemplateQueryRespDTO;
 import com.mall.cqupt.engine.service.CouponTemplateService;
 import com.mall.cqupt.framework.result.Result;
@@ -29,5 +30,11 @@ public class CouponTemplateController {
     @GetMapping("/api/engine/coupon-template/query")
     public Result<CouponTemplateQueryRespDTO> findCouponTemplate(CouponTemplateQueryReqDTO requestParam) {
         return Results.success(couponTemplateService.findCouponTemplate(requestParam));
+    }
+
+    @Operation(summary = "分页查询领券中心可领取优惠券")
+    @GetMapping("/api/engine/coupon-template/page")
+    public Result<IPage<CouponTemplateQueryRespDTO>> pageAvailableCouponTemplate(CouponTemplatePageQueryReqDTO requestParam) {
+        return Results.success(couponTemplateService.pageAvailableCouponTemplate(requestParam));
     }
 }

@@ -1,4 +1,14 @@
-import type { ConsumeRuleDraft, CouponStatus, CouponTarget, CouponType, ReceiveRuleDraft } from '@/types/coupon'
+import type {
+  ConsumeRuleDraft,
+  CouponStatus,
+  CouponTarget,
+  CouponTaskNotifyType,
+  CouponTaskSendType,
+  CouponTaskStatus,
+  CouponType,
+  ReceiveRuleDraft,
+  UserCouponStatus
+} from '@/types/coupon'
 
 export const couponSourceText: Record<number, string> = {
   0: '店铺券',
@@ -32,6 +42,34 @@ export const applicableMerchantScopeText: Record<string, string> = {
   SPECIFIED: '指定商家'
 }
 
+export const couponTaskStatusText: Record<CouponTaskStatus, string> = {
+  0: '待执行',
+  1: '执行中',
+  2: '执行失败',
+  3: '执行成功',
+  4: '已取消'
+}
+
+export const couponTaskSendTypeText: Record<CouponTaskSendType, string> = {
+  0: '立即发送',
+  1: '定时发送'
+}
+
+export const couponTaskNotifyTypeText: Record<CouponTaskNotifyType, string> = {
+  0: '站内信',
+  1: '弹框推送',
+  2: '邮箱',
+  3: '短信'
+}
+
+export const userCouponStatusText: Record<UserCouponStatus, string> = {
+  0: '未使用',
+  1: '已锁定',
+  2: '已使用',
+  3: '已过期',
+  4: '已撤回'
+}
+
 export function getCouponSourceText(source?: number) {
   return couponSourceText[source ?? 0] || '未知来源'
 }
@@ -52,6 +90,45 @@ export function couponStatusTagType(status?: number) {
   if (status === 0) return 'success'
   if (status === 1) return 'info'
   if (status === 2) return 'warning'
+  return 'info'
+}
+
+export function getCouponTaskStatusText(status?: number) {
+  return couponTaskStatusText[(status ?? 0) as CouponTaskStatus] || '未知状态'
+}
+
+export function couponTaskStatusTagType(status?: number) {
+  if (status === 0) return 'warning'
+  if (status === 1) return 'primary'
+  if (status === 2) return 'danger'
+  if (status === 3) return 'success'
+  if (status === 4) return 'info'
+  return 'info'
+}
+
+export function getCouponTaskSendTypeText(sendType?: number) {
+  return couponTaskSendTypeText[(sendType ?? 0) as CouponTaskSendType] || '未知发送方式'
+}
+
+export function formatCouponTaskNotifyTypes(notifyType?: string) {
+  if (!notifyType) return '-'
+  return notifyType
+    .split(',')
+    .map((item) => couponTaskNotifyTypeText[item.trim() as CouponTaskNotifyType])
+    .filter(Boolean)
+    .join('、') || '-'
+}
+
+export function getUserCouponStatusText(status?: number) {
+  return userCouponStatusText[(status ?? 0) as UserCouponStatus] || '未知状态'
+}
+
+export function userCouponStatusTagType(status?: number) {
+  if (status === 0) return 'success'
+  if (status === 1) return 'warning'
+  if (status === 2) return 'info'
+  if (status === 3) return 'danger'
+  if (status === 4) return 'info'
   return 'info'
 }
 
@@ -105,6 +182,11 @@ export function formatCouponBenefit(type: CouponType, consumeRule?: string) {
 export function formatReceiveLimit(receiveRule?: string) {
   const rule = parseJsonObject<Record<string, string | number>>(receiveRule)
   return rule.limitPerPerson ? `每人限领 ${rule.limitPerPerson} 张` : '不限领取次数'
+}
+
+export function formatUsageInstructions(receiveRule?: string) {
+  const rule = parseJsonObject<Record<string, string | number>>(receiveRule)
+  return String(rule.usageInstructions || '按页面展示规则使用')
 }
 
 export function formatDistributionMode(receiveRule?: string) {

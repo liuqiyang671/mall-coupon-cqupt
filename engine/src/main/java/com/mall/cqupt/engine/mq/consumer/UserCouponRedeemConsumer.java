@@ -1,6 +1,5 @@
 package com.mall.cqupt.engine.mq.consumer;
 
-import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -72,7 +71,7 @@ public class UserCouponRedeemConsumer implements RocketMQListener<MessageWrapper
 
         // 添加 Redis 用户领取的优惠券记录列表
         Date now = new Date();
-        DateTime validEndTime = DateUtil.offsetHour(now, JSON.parseObject(couponTemplate.getConsumeRule()).getInteger("validityPeriod"));
+        Date validEndTime = resolveUserCouponValidEndTime(couponTemplate, now);
         UserCouponDO userCouponDO = UserCouponDO.builder()
                 .couponTemplateId(Long.parseLong(requestParam.getCouponTemplateId()))
                 .userId(Long.parseLong(userId))
@@ -122,5 +121,11 @@ public class UserCouponRedeemConsumer implements RocketMQListener<MessageWrapper
         if (ObjectUtil.notEqual(sendResult.getSendStatus().name(), "SEND_OK")) {
             log.warn("[消费者] 用户兑换优惠券 - 执行消费逻辑，发送优惠券关闭延时队列失败，消息参数：{}", JSON.toJSONString(userCouponDelayCloseEvent));
         }
+    }
+
+    private Date resolveUserCouponValidEndTime(CouponTemplateQueryRespDTO couponTemplate, Date now) {
+        var consumeRule = JSON.parseObject(couponTemplate.getConsumeRule());
+        Integer validityPeriod = consumeRule == null ? null : consumeRule.getInteger("validityPeriod");
+        return validityPeriod == null ? couponTemplate.getValidEndTime() : DateUtil.offsetHour(now, validityPeriod);
     }
 }

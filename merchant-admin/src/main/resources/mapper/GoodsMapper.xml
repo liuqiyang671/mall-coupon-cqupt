@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.cqupt.merchant.admin.dao.mapper.GoodsMapper">
+
+    <update id="decreaseStock">
+        UPDATE t_goods
+        SET stock = stock - #{quantity}, update_time = NOW()
+        WHERE shop_number = #{shopNumber}
+          AND id = #{goodsId}
+          AND stock >= #{quantity}
+          AND del_flag = 0
+    </update>
+
+    <update id="increaseStock">
+        UPDATE t_goods
+        SET stock = stock + #{quantity}, update_time = NOW()
+        WHERE shop_number = #{shopNumber}
+          AND id = #{goodsId}
+          AND del_flag = 0
+    </update>
+
+    <update id="increaseSales">
+        UPDATE t_goods
+        SET sales = sales + #{quantity}, update_time = NOW()
+        WHERE shop_number = #{shopNumber}
+          AND id = #{goodsId}
+          AND del_flag = 0
+    </update>
+
+</mapper>

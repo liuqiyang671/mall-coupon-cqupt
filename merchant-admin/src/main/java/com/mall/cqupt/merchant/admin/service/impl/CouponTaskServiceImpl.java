@@ -8,6 +8,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.mall.cqupt.framework.exception.ClientException;
@@ -120,10 +121,12 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
                 .eq(StrUtil.isNotBlank(requestParam.getBatchId()), CouponTaskDO::getBatchId, requestParam.getBatchId()) // 动态查询条件 - 批次 ID：只有当请求参数中的 batchId 不为空白时，才增加该等值查询条件
                 .like(StrUtil.isNotBlank(requestParam.getTaskName()), CouponTaskDO::getTaskName, requestParam.getTaskName()) // 优惠券推送任务名称
                 .eq(StrUtil.isNotBlank(requestParam.getCouponTemplateId()), CouponTaskDO::getCouponTemplateId, requestParam.getCouponTemplateId()) // 优惠券模板id
-                .eq(Objects.nonNull(requestParam.getStatus()), CouponTaskDO::getStatus, requestParam.getStatus()); // 状态 0：待执行 1：执行中 2：执行失败 3：执行成功 4：取消
+                .eq(Objects.nonNull(requestParam.getStatus()), CouponTaskDO::getStatus, requestParam.getStatus()) // 状态 0：待执行 1：执行中 2：执行失败 3：执行成功 4：取消
+                .orderByDesc(CouponTaskDO::getCreateTime);
 
         // MyBatis-Plus 分页查询优惠券推送任务信息
-        IPage<CouponTaskDO> selectPage = couponTaskMapper.selectPage(requestParam, queryWrapper);
+        Page<CouponTaskDO> page = new Page<>(requestParam.getCurrent(), requestParam.getSize());
+        IPage<CouponTaskDO> selectPage = couponTaskMapper.selectPage(page, queryWrapper);
 
         // 转换数据库持久层对象为优惠券模板返回参数
         return selectPage.convert(each -> BeanUtil.toBean(each, CouponTaskPageQueryRespDTO.class));

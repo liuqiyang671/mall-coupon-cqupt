@@ -42,8 +42,12 @@ public class UserConfiguration implements WebMvcConfigurer {
 
         @Override
         public boolean preHandle(@Nullable HttpServletRequest request, @Nullable HttpServletResponse response, @Nullable Object handler) throws Exception {
-            // 用户属于非核心功能，这里先通过模拟的形式代替。后续如果需要后管展示，会重构该代码
-            UserInfoDTO userInfoDTO = new UserInfoDTO("1810518709471555585", "pdd45305558318", 1810714735922956666L);
+            String userId = request == null ? null : request.getHeader("X-User-Id");
+            String username = request == null ? null : request.getHeader("X-Username");
+            String shopNumber = request == null ? null : request.getHeader("X-Shop-Number");
+            UserInfoDTO userInfoDTO = userId == null || userId.isBlank()
+                    ? new UserInfoDTO("1810518709471555585", "pdd45305558318", 1810714735922956666L)
+                    : new UserInfoDTO(userId, username, shopNumber == null || shopNumber.isBlank() ? null : Long.parseLong(shopNumber));
             UserContext.setUser(userInfoDTO);
             return true;
         }

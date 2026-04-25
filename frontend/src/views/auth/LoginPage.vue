@@ -92,7 +92,7 @@ async function submit() {
   try {
     await authStore.login(form)
     ElMessage.success('登录成功')
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/merchant'
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : defaultHomePath()
     await router.replace(redirect)
   } catch (error) {
     form.password = ''
@@ -100,5 +100,9 @@ async function submit() {
   } finally {
     submitting.value = false
   }
+}
+
+function defaultHomePath() {
+  return authStore.isCustomer ? '/user/products' : '/merchant'
 }
 </script>

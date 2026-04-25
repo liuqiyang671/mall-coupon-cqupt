@@ -1,14 +1,19 @@
 package com.mall.cqupt.engine.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Singleton;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 
 import com.mall.cqupt.engine.common.constant.EngineRedisConstant;
@@ -19,7 +24,9 @@ import com.mall.cqupt.engine.dao.mapper.CouponTemplateMapper;
 import com.mall.cqupt.engine.dao.mapper.UserCouponMapper;
 import com.mall.cqupt.engine.dto.req.CouponTemplateQueryReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateRedeemReqDTO;
+import com.mall.cqupt.engine.dto.req.UserCouponPageQueryReqDTO;
 import com.mall.cqupt.engine.dto.resp.CouponTemplateQueryRespDTO;
+import com.mall.cqupt.engine.dto.resp.UserCouponPageQueryRespDTO;
 import com.mall.cqupt.engine.mq.event.UserCouponDelayCloseEvent;
 import com.mall.cqupt.engine.mq.event.UserCouponRedeemEvent;
 import com.mall.cqupt.engine.mq.producer.UserCouponDelayCloseProducer;
@@ -42,6 +49,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * 用户优惠券业务逻辑实现层
@@ -64,6 +73,34 @@ public class UserCouponServiceImpl implements UserCouponService {
     private String userCouponListSaveCacheType;
 
     private final static String STOCK_DECREMENT_AND_SAVE_USER_RECEIVE_LUA_PATH = "lua/stock_decrement_and_save_user_receive.lua";
+
+    @Override
+    public IPage<UserCouponPageQueryRespDTO> pageUserCoupon(UserCouponPageQueryReqDTO requestParam) {
+        LambdaQueryWrapper<UserCouponDO> queryWrapper = Wrappers.lambdaQuery(UserCouponDO.class)
+                .eq(UserCouponDO::getUserId, Long.parseLong(UserContext.getUserId()))
+                .eq(Objects.nonNull(requestParam.getStatus()), UserCouponDO::getStatus, requestParam.getStatus())
+                .orderByDesc(UserCouponDO::getReceiveTime);
+        Page<UserCouponDO> page = new Page<>(requestParam.getCurrent(), requestParam.getSize());
+        IPage<UserCouponDO> selectPage = userCouponMapper.selectPage(page, queryWrapper);
+        return selectPage.convert(this::buildUserCouponResponse);
+    }
+
+    private UserCouponPageQueryRespDTO buildUserCouponResponse(UserCouponDO userCouponDO) {
+        UserCouponPageQueryRespDTO response = BeanUtil.toBean(userCouponDO, UserCouponPageQueryRespDTO.class);
+        String couponTemplateCacheKey = String.format(EngineRedisConstant.COUPON_TEMPLATE_KEY, userCouponDO.getCouponTemplateId());
+        Map<Object, Object> couponTemplateCacheMap = stringRedisTemplate.opsForHash().entries(couponTemplateCacheKey);
+        if (MapUtil.isNotEmpty(couponTemplateCacheMap)) {
+            CouponTemplateQueryRespDTO template = BeanUtil.mapToBean(couponTemplateCacheMap, CouponTemplateQueryRespDTO.class, false, CopyOptions.create());
+            response.setName(template.getName());
+            response.setShopNumber(template.getShopNumber());
+            response.setTarget(template.getTarget());
+            response.setGoods(template.getGoods());
+            response.setType(template.getType());
+            response.setReceiveRule(template.getReceiveRule());
+            response.setConsumeRule(template.getConsumeRule());
+        }
+        return response;
+    }
 
     @Override
     public void redeemUserCoupon(CouponTemplateRedeemReqDTO requestParam) {
@@ -115,7 +152,7 @@ public class UserCouponServiceImpl implements UserCouponService {
 
                 // 添加 Redis 用户领取的优惠券记录列表
                 Date now = new Date();
-                DateTime validEndTime = DateUtil.offsetHour(now, JSON.parseObject(couponTemplate.getConsumeRule()).getInteger("validityPeriod"));
+                Date validEndTime = resolveUserCouponValidEndTime(couponTemplate, now);
                 UserCouponDO userCouponDO = UserCouponDO.builder()
                         .couponTemplateId(Long.parseLong(requestParam.getCouponTemplateId()))
                         .userId(Long.parseLong(UserContext.getUserId()))
@@ -125,12 +162,11 @@ public class UserCouponServiceImpl implements UserCouponService {
                         .receiveTime(now)
                         .validStartTime(now)
                         .validEndTime(validEndTime)
-                        .validEndTime(DateUtil.offsetHour(now, JSON.parseObject(couponTemplate.getConsumeRule()).getInteger("validityPeriod")))
                         .build();
                 userCouponMapper.insert(userCouponDO);
 
                 // 保存优惠券缓存集合有两个选项：direct 在流程里直接操作，binlog 通过解析数据库日志后操作
-                if(StrUtil.equals(userCouponTemplateLimitCacheKey,"direct")){
+                if (StrUtil.equals(userCouponListSaveCacheType, "direct")) {
                     // 添加用户领取优惠券模板缓存记录
                     String userCouponListCacheKey = String.format(EngineRedisConstant.USER_COUPON_TEMPLATE_LIST_KEY, UserContext.getUserId());
                     String userCouponItemCacheKey = StrUtil.builder()
@@ -238,5 +274,11 @@ public class UserCouponServiceImpl implements UserCouponService {
         if (ObjectUtil.notEqual(sendResult.getSendStatus().name(), "SEND_OK")) {
             log.warn("发送优惠券兑换消息失败，消息参数：{}", JSON.toJSONString(userCouponRedeemEvent));
         }
+    }
+
+    private Date resolveUserCouponValidEndTime(CouponTemplateQueryRespDTO couponTemplate, Date now) {
+        JSONObject consumeRule = JSON.parseObject(couponTemplate.getConsumeRule());
+        Integer validityPeriod = consumeRule == null ? null : consumeRule.getInteger("validityPeriod");
+        return validityPeriod == null ? couponTemplate.getValidEndTime() : DateUtil.offsetHour(now, validityPeriod);
     }
 }

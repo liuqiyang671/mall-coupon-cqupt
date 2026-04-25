@@ -34,6 +34,15 @@ http.interceptors.request.use((config) => {
   if (authStore.token) {
     config.headers.Authorization = `Bearer ${authStore.token}`
   }
+  if (authStore.userId) {
+    config.headers['X-User-Id'] = authStore.userId
+  }
+  if (authStore.username) {
+    config.headers['X-Username'] = authStore.username
+  }
+  if (authStore.shopNumber) {
+    config.headers['X-Shop-Number'] = authStore.shopNumber
+  }
   config.headers['X-Request-Source'] = 'onecoupon-web'
   return config
 })

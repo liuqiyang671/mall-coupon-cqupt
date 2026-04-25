@@ -1,10 +1,13 @@
 package com.mall.cqupt.engine.controller;
 
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.mall.cqupt.engine.dto.req.CouponCreatePaymentReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponProcessPaymentReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponProcessRefundReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateRedeemReqDTO;
+import com.mall.cqupt.engine.dto.req.UserCouponPageQueryReqDTO;
+import com.mall.cqupt.engine.dto.resp.UserCouponPageQueryRespDTO;
 import com.mall.cqupt.engine.service.CouponPayService;
 import com.mall.cqupt.engine.service.UserCouponService;
 import com.mall.cqupt.framework.result.Result;
@@ -12,6 +15,7 @@ import com.mall.cqupt.framework.web.Results;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +30,12 @@ public class UserCouponController {
 
     private final UserCouponService userCouponService;
     private final CouponPayService couponPayService;
+
+    @Operation(summary = "分页查询当前用户优惠券")
+    @GetMapping("/api/engine/user-coupon/page")
+    public Result<IPage<UserCouponPageQueryRespDTO>> pageUserCoupon(UserCouponPageQueryReqDTO requestParam) {
+        return Results.success(userCouponService.pageUserCoupon(requestParam));
+    }
 
     @Operation(summary = "兑换优惠券模板", description = "存在较高流量场景，可类比“秒杀”业务")
     @PostMapping("/api/engine/user-coupon/redeem")

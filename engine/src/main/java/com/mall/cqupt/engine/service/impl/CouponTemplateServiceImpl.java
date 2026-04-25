@@ -12,7 +12,9 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
@@ -23,6 +25,7 @@ import com.mall.cqupt.engine.dao.entity.CouponTemplateDO;
 import com.mall.cqupt.engine.dao.entity.UserCouponDO;
 import com.mall.cqupt.engine.dao.mapper.CouponTemplateMapper;
 import com.mall.cqupt.engine.dao.mapper.UserCouponMapper;
+import com.mall.cqupt.engine.dto.req.CouponTemplatePageQueryReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateQueryReqDTO;
 import com.mall.cqupt.engine.dto.req.CouponTemplateRedeemReqDTO;
 import com.mall.cqupt.engine.dto.resp.CouponTemplateQueryRespDTO;
@@ -164,6 +167,57 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
         }
 
         return BeanUtil.mapToBean(couponTemplateCacheMap, CouponTemplateQueryRespDTO.class, false, CopyOptions.create());
+    }
+
+    @Override
+    public IPage<CouponTemplateQueryRespDTO> pageAvailableCouponTemplate(CouponTemplatePageQueryReqDTO requestParam) {
+        LambdaQueryWrapper<CouponTemplateDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateDO.class)
+                .eq(CouponTemplateDO::getStatus, 0)
+                .ge(CouponTemplateDO::getValidEndTime, new Date())
+                .like(StrUtil.isNotBlank(requestParam.getName()), CouponTemplateDO::getName, requestParam.getName())
+                .eq(Objects.nonNull(requestParam.getSource()), CouponTemplateDO::getSource, requestParam.getSource())
+                .eq(Objects.nonNull(requestParam.getTarget()), CouponTemplateDO::getTarget, requestParam.getTarget())
+                .eq(Objects.nonNull(requestParam.getType()), CouponTemplateDO::getType, requestParam.getType())
+                .orderByAsc(CouponTemplateDO::getValidStartTime)
+                .orderByDesc(CouponTemplateDO::getCreateTime);
+        if (StrUtil.isNotBlank(requestParam.getShopNumber())) {
+            queryWrapper.eq(CouponTemplateDO::getShopNumber, parseLongParam(requestParam.getShopNumber(), "店铺编号格式不正确"));
+        }
+        if (StrUtil.isNotBlank(requestParam.getCouponTemplateId())) {
+            queryWrapper.eq(CouponTemplateDO::getId, parseLongParam(requestParam.getCouponTemplateId(), "优惠券模板 ID 格式不正确"));
+        }
+
+        Page<CouponTemplateDO> page = new Page<>(requestParam.getCurrent(), requestParam.getSize());
+        IPage<CouponTemplateDO> selectPage = couponTemplateMapper.selectPage(page, queryWrapper);
+        return selectPage.convert(each -> {
+            warmUpCouponTemplateCache(each);
+            return BeanUtil.toBean(each, CouponTemplateQueryRespDTO.class);
+        });
+    }
+
+    private void warmUpCouponTemplateCache(CouponTemplateDO couponTemplateDO) {
+        if (couponTemplateDO == null || couponTemplateDO.getId() == null) {
+            return;
+        }
+        String couponTemplateId = String.valueOf(couponTemplateDO.getId());
+        couponTemplateQueryBloomFilter.add(couponTemplateId);
+        String couponTemplateCacheKey = String.format(EngineRedisConstant.COUPON_TEMPLATE_KEY, couponTemplateId);
+        CouponTemplateQueryRespDTO actualRespDTO = BeanUtil.toBean(couponTemplateDO, CouponTemplateQueryRespDTO.class);
+        Map<String, Object> cacheTargetMap = BeanUtil.beanToMap(actualRespDTO, false, true);
+        Map<String, String> actualCacheTargetMap = cacheTargetMap.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue() != null ? entry.getValue().toString() : ""
+                ));
+        stringRedisTemplate.opsForHash().putAll(couponTemplateCacheKey, actualCacheTargetMap);
+    }
+
+    private Long parseLongParam(String value, String message) {
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException ex) {
+            throw new ClientException(message);
+        }
     }
 
 

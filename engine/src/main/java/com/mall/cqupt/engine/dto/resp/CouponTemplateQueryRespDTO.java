@@ -86,4 +86,10 @@ public class CouponTemplateQueryRespDTO {
      */
     @Schema(description = "消耗规则")
     private String consumeRule;
+
+    /**
+     * 优惠券状态 0：生效中 1：已结束
+     */
+    @Schema(description = "优惠券状态 0：生效中 1：已结束")
+    private Integer status;
 }

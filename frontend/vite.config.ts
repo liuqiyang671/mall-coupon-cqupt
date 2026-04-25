@@ -15,6 +15,10 @@ export default defineConfig({
         target: 'http://localhost:10010',
         changeOrigin: true
       },
+      '/api/user': {
+        target: 'http://localhost:10010',
+        changeOrigin: true
+      },
       '/api/engine': {
         target: 'http://localhost:10020',
         changeOrigin: true

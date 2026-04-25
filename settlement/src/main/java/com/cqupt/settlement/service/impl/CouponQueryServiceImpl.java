@@ -8,14 +8,18 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
+import com.cqupt.settlement.common.context.UserContext;
 import com.cqupt.settlement.dao.entity.UserCouponDO;
 import com.cqupt.settlement.dao.mapper.UserCouponMapper;
+import com.cqupt.settlement.dto.req.QueryCouponGoodsReqDTO;
 import com.cqupt.settlement.dto.req.QueryCouponsReqDTO;
 import com.cqupt.settlement.dto.resp.CouponsRespDTO;
+import com.cqupt.settlement.dto.resp.QueryCouponsDetailRespDTO;
 import com.cqupt.settlement.dto.resp.QueryCouponsRespDTO;
 import com.cqupt.settlement.service.CouponQueryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mall.cqupt.framework.exception.ClientException;
+import com.mall.cqupt.framework.config.RedisDistributedProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisCallback;
@@ -29,6 +33,9 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.cqupt.settlement.common.constant.SettlementRedisConstant.COUPON_TEMPLATE_KEY;
+import static com.cqupt.settlement.common.constant.SettlementRedisConstant.USER_COUPON_TEMPLATE_LIST_KEY;
 
 /**
  * 查询用户可用 / 不可用优惠券列表接口
@@ -72,7 +79,7 @@ public class CouponQueryServiceImpl implements CouponQueryService {
         // 构建 Redis Key 列表
         List<String> couponTemplateIds = rangeUserCoupons.stream()
                 .map(each -> StrUtil.split(each, "_").get(0))
-                .map(each -> redisDistributedProperties.getPrefix() + String.format(COUPON_TEMPLATE_KEY, each))
+                .map(this::buildCouponTemplateCacheKey)
                 .toList();
 
         // 同步获取 Redis 数据并进行解析、转换和分区
@@ -186,10 +193,16 @@ public class CouponQueryServiceImpl implements CouponQueryService {
      */
     public QueryCouponsRespDTO listQueryUserCouponsBySync(QueryCouponsReqDTO requestParam) {
         Set<String> rangeUserCoupons = stringRedisTemplate.opsForZSet().range(String.format(USER_COUPON_TEMPLATE_LIST_KEY, UserContext.getUserId()), 0, -1);
+        if (rangeUserCoupons == null || rangeUserCoupons.isEmpty()) {
+            return QueryCouponsRespDTO.builder()
+                    .availableCoupons(new ArrayList<>())
+                    .notAvailableCoupons(new ArrayList<>())
+                    .build();
+        }
 
         List<String> couponTemplateIds = rangeUserCoupons.stream()
                 .map(each -> StrUtil.split(each, "_").get(0))
-                .map(each -> redisDistributedProperties.getPrefix() + String.format(COUPON_TEMPLATE_KEY, each))
+                .map(this::buildCouponTemplateCacheKey)
                 .toList();
         List<Object> couponTemplateList = stringRedisTemplate.executePipelined((RedisCallback<String>) connection -> {
             couponTemplateIds.forEach(each -> connection.hashCommands().hGetAll(each.getBytes()));
@@ -291,5 +304,9 @@ public class CouponQueryServiceImpl implements CouponQueryService {
                 .availableCoupons(availableCoupons)
                 .notAvailableCoupons(notAvailableCoupons)
                 .build();
+    }
+
+    private String buildCouponTemplateCacheKey(String couponTemplateId) {
+        return Optional.ofNullable(redisDistributedProperties.getPrefix()).orElse("") + String.format(COUPON_TEMPLATE_KEY, couponTemplateId);
     }
 }

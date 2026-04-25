@@ -14,6 +14,12 @@ import java.util.Date;
 public class CouponTaskQueryRespDTO {
 
     /**
+     * 任务id
+     */
+    @Schema(description = "任务id")
+    private Long id;
+
+    /**
      * 批次id
      */
     @Schema(description = "批次id")
@@ -24,6 +30,18 @@ public class CouponTaskQueryRespDTO {
      */
     @Schema(description = "优惠券批次任务名称")
     private String taskName;
+
+    /**
+     * 文件地址
+     */
+    @Schema(description = "文件地址")
+    private String fileAddress;
+
+    /**
+     * 发放失败用户文件地址
+     */
+    @Schema(description = "发放失败用户文件地址")
+    private String failFileAddress;
 
     /**
      * 发放优惠券数量

@@ -38,6 +38,41 @@ rules:
           standard:
             shardingColumn: shop_number
             shardingAlgorithmName: coupon_template_log_table_mod
+      t_goods:
+        actualDataNodes: ds_${0..1}.t_goods_${0..15}
+        databaseStrategy:
+          standard:
+            shardingColumn: shop_number
+            shardingAlgorithmName: goods_database_mod
+        tableStrategy:
+          standard:
+            shardingColumn: shop_number
+            shardingAlgorithmName: goods_table_mod
+      t_goods_image:
+        actualDataNodes: ds_${0..1}.t_goods_image_${0..15}
+        databaseStrategy:
+          standard:
+            shardingColumn: shop_number
+            shardingAlgorithmName: goods_image_database_mod
+        tableStrategy:
+          standard:
+            shardingColumn: shop_number
+            shardingAlgorithmName: goods_image_table_mod
+      t_goods_attribute_value:
+        actualDataNodes: ds_${0..1}.t_goods_attribute_value_${0..15}
+        databaseStrategy:
+          standard:
+            shardingColumn: shop_number
+            shardingAlgorithmName: goods_attribute_value_database_mod
+        tableStrategy:
+          standard:
+            shardingColumn: shop_number
+            shardingAlgorithmName: goods_attribute_value_table_mod
+    bindingTables:
+      - t_goods, t_goods_image, t_goods_attribute_value
+    broadcastTables:
+      - t_goods_category
+      - t_goods_attribute
     shardingAlgorithms: # 分片算法定义集合
       coupon_template_database_mod: # 优惠券分库算法定义
         type: CLASS_BASED # 根据自定义库分片算法类进行分片
@@ -59,6 +94,39 @@ rules:
           sharding-count: 16
           strategy: standard
       coupon_template_log_table_mod:
+        type: CLASS_BASED
+        props:
+          algorithmClassName: com.mall.cqupt.merchant.admin.dao.sharding.TableHashModShardingAlgorithm
+          strategy: standard
+      goods_database_mod:
+        type: CLASS_BASED
+        props:
+          algorithmClassName: com.mall.cqupt.merchant.admin.dao.sharding.DBHashModShardingAlgorithm
+          sharding-count: 16
+          strategy: standard
+      goods_table_mod:
+        type: CLASS_BASED
+        props:
+          algorithmClassName: com.mall.cqupt.merchant.admin.dao.sharding.TableHashModShardingAlgorithm
+          strategy: standard
+      goods_image_database_mod:
+        type: CLASS_BASED
+        props:
+          algorithmClassName: com.mall.cqupt.merchant.admin.dao.sharding.DBHashModShardingAlgorithm
+          sharding-count: 16
+          strategy: standard
+      goods_image_table_mod:
+        type: CLASS_BASED
+        props:
+          algorithmClassName: com.mall.cqupt.merchant.admin.dao.sharding.TableHashModShardingAlgorithm
+          strategy: standard
+      goods_attribute_value_database_mod:
+        type: CLASS_BASED
+        props:
+          algorithmClassName: com.mall.cqupt.merchant.admin.dao.sharding.DBHashModShardingAlgorithm
+          sharding-count: 16
+          strategy: standard
+      goods_attribute_value_table_mod:
         type: CLASS_BASED
         props:
           algorithmClassName: com.mall.cqupt.merchant.admin.dao.sharding.TableHashModShardingAlgorithm

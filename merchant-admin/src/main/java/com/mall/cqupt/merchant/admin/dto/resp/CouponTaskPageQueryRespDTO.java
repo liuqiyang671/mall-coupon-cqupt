@@ -14,6 +14,12 @@ import java.util.Date;
 public class CouponTaskPageQueryRespDTO {
 
     /**
+     * 任务id
+     */
+    @Schema(description = "任务id")
+    private Long id;
+
+    /**
      * 批次id
      */
     @Schema(description = "批次id")

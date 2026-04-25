@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.mall.cqupt.framework.exception.ClientException;
 import com.mall.cqupt.framework.exception.ServiceException;
@@ -157,7 +158,8 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
                 .eq(Objects.nonNull(requestParam.getTarget()), CouponTemplateDO::getTarget, requestParam.getTarget());
 
         // MyBatis-Plus 分页查询优惠券模板信息
-        IPage<CouponTemplateDO> selectPage = couponTemplateMapper.selectPage(requestParam, queryWrapper);
+        Page<CouponTemplateDO> page = new Page<>(requestParam.getCurrent(), requestParam.getSize());
+        IPage<CouponTemplateDO> selectPage = couponTemplateMapper.selectPage(page, queryWrapper);
 
         // 转换数据库持久层对象为优惠券模板返回参数
         return selectPage.convert(each -> BeanUtil.toBean(each, CouponTemplatePageQueryRespDTO.class));
