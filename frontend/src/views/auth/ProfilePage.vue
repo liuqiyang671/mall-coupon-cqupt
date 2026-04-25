@@ -80,9 +80,10 @@
             <LogOut :size="20" />
             <span>退出登录或修改密码会清理本地登录态。</span>
           </li>
-          <li v-if="authStore.isMerchant">
+          <li v-if="authStore.isMerchant || authStore.isPlatform">
             <ShieldCheck :size="20" />
-            <span>优惠券模板和推送任务仅商家角色可操作，并按店铺编号隔离数据。</span>
+            <span v-if="authStore.isPlatform">优惠券模板按平台券边界管理，不直接修改商家券。</span>
+            <span v-else>优惠券模板和推送任务仅可操作当前店铺数据，并按店铺编号隔离。</span>
           </li>
         </ul>
       </article>

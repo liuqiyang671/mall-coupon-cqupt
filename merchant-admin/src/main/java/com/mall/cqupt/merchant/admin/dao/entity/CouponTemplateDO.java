@@ -81,7 +81,7 @@ public class CouponTemplateDO {
     private String consumeRule;
 
     /**
-     * 优惠券状态 0：生效中 1：已结束 2：待激活
+     * 优惠券状态 0：生效中 1：已结束
      */
     private Integer status;
 

@@ -30,11 +30,19 @@ public class CouponTemplateController {
 
     private final CouponTemplateService couponTemplateService;
 
-    @Operation(summary = "商家创建优惠券模板")
+    @Operation(summary = "创建优惠券模板")
     @NoDuplicateSubmit(message = "请勿短时间内重复提交优惠券模板")
     @PostMapping("/api/merchant-admin/coupon-template/save")
     public Result<Void> saveCouponTemplate(@RequestBody CouponTemplateSaveReqDTO requestParam) {
         couponTemplateService.createCouponTemplate(requestParam);
+        return Results.success();
+    }
+
+    @Operation(summary = "修改优惠券模板")
+    @NoDuplicateSubmit(message = "请勿短时间内重复修改优惠券模板")
+    @PostMapping("/api/merchant-admin/coupon-template/update")
+    public Result<Void> updateCouponTemplate(String couponTemplateId, @RequestBody CouponTemplateSaveReqDTO requestParam) {
+        couponTemplateService.updateCouponTemplate(couponTemplateId, requestParam);
         return Results.success();
     }
 

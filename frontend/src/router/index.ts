@@ -37,6 +37,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '工作台' }
       },
       {
+        path: 'coupon-templates',
+        name: 'coupon-templates',
+        component: () => import('@/views/merchant/CouponTemplatePage.vue'),
+        meta: { title: '优惠券模板', roles: [0, 1] }
+      },
+      {
         path: 'profile',
         name: 'profile',
         component: () => import('@/views/auth/ProfilePage.vue'),

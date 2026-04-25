@@ -14,6 +14,12 @@ import java.util.Date;
 public class CouponTemplateQueryRespDTO {
 
     /**
+     * 优惠券模板 ID
+     */
+    @Schema(description = "优惠券模板 ID")
+    private Long id;
+
+    /**
      * 优惠券名称
      */
     @Schema(description = "优惠券名称")
@@ -74,4 +80,10 @@ public class CouponTemplateQueryRespDTO {
      */
     @Schema(description = "消耗规则")
     private String consumeRule;
+
+    /**
+     * 优惠券状态 0：生效中 1：已结束
+     */
+    @Schema(description = "优惠券状态 0：生效中 1：已结束")
+    private Integer status;
 }

@@ -40,6 +40,7 @@ const authStore = useAuthStore()
 
 const navItems = computed(() => [
   { to: '/merchant', label: authStore.roleWorkspaceName },
+  ...(authStore.isMerchant || authStore.isPlatform ? [{ to: '/merchant/coupon-templates', label: '优惠券模板' }] : []),
   { to: '/merchant/profile', label: '个人信息' }
 ])
 

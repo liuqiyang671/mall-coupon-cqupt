@@ -18,6 +18,12 @@ public class CouponTemplatePageQueryReqDTO extends Page {
     private String name;
 
     /**
+     * 优惠券来源 0：店铺券 1：平台券
+     */
+    @Schema(description = "优惠券来源 0：店铺券 1：平台券")
+    private Integer source;
+
+    /**
      * 优惠对象 0：商品专属 1：全店通用
      */
     @Schema(description = "优惠对象 0：商品专属 1：全店通用")
