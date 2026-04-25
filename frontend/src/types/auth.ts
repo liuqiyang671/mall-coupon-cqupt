@@ -28,8 +28,8 @@ export const USER_ROLE_OPTIONS: Array<{
   {
     value: 2,
     label: '用户',
-    loginHint: '进入个人券包和账户信息中心。',
-    registerHint: '用于领券、用券和维护个人资料。'
+    loginHint: '进入商品商城、购物车和个人券包。',
+    registerHint: '用于浏览商品、领券、用券和维护个人资料。'
   }
 ]
 

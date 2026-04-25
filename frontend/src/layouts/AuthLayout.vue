@@ -9,14 +9,14 @@
         </div>
       </div>
       <div class="coupon-preview">
-        <div class="coupon-preview__amount">¥30</div>
+        <div class="coupon-preview__amount">AI</div>
         <div>
-          <strong>满 100 可用</strong>
-          <span>邮惠券专属券卡体验，后台式高效管理</span>
+          <strong>实时券核 · 智能结算</strong>
+          <span>优惠券、商品、任务与购物车统一进入数字化控制台</span>
         </div>
       </div>
       <p class="auth-visual__copy">
-        重庆邮电大学学生打造的优惠券管理平台，支持账号安全、券模板维护和批量发券任务。
+        面向平台、商家和用户的现代化优惠券商城系统，支持模板维护、批量发券、领券高峰处理、购物车和结算用券。
       </p>
     </section>
 

@@ -12,6 +12,11 @@ spring:
           predicates:
             - Path=/api/merchant-admin/**
 
+        - id: oneCoupon-user-goods
+          uri: lb://oneCoupon-merchant-admin/api/user/**
+          predicates:
+            - Path=/api/user/**
+
         - id: oneCoupon-engine
           uri: lb://oneCoupon-engine/api/engine/**
           predicates:
