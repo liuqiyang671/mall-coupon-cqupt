@@ -58,16 +58,6 @@ rules:
           standard:
             shardingColumn: user_id
             shardingAlgorithmName: user_coupon_settlement_table_mod
-      t_cart:
-        actualDataNodes: ds_${0..1}.t_cart_${0..15}
-        databaseStrategy:
-          standard:
-            shardingColumn: user_id
-            shardingAlgorithmName: cart_database_mod
-        tableStrategy:
-          standard:
-            shardingColumn: user_id
-            shardingAlgorithmName: cart_table_mod
     shardingAlgorithms: # 分片算法定义集合
       coupon_template_database_mod: # 优惠券分库算法定义
         type: CLASS_BASED # 根据自定义库分片算法类进行分片
@@ -116,17 +106,9 @@ rules:
         props:
           algorithmClassName: com.mall.cqupt.engine.dao.sharding.TableHashModShardingAlgorithm
           strategy: standard
-      cart_database_mod:
-        type: CLASS_BASED
-        props:
-          algorithmClassName: com.mall.cqupt.engine.dao.sharding.DBHashModShardingAlgorithm
-          sharding-count: 16
-          strategy: standard
-      cart_table_mod:
-        type: CLASS_BASED
-        props:
-          algorithmClassName: com.mall.cqupt.engine.dao.sharding.TableHashModShardingAlgorithm
-          strategy: standard
+  - !SINGLE
+    defaultDataSource: ds_0
+
 props:
   # 配置 ShardingSphere 默认打印 SQL 执行语句
   sql-show: true
