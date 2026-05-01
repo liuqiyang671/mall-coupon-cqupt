@@ -558,5 +558,5 @@ mall-cqupt-lqy11/
 ---
 
 <p align="center">
-  OneCoupon 邮惠券营销系统 &copy; 2026
+  邮惠券营销系统 &copy; 2026
 </p>
