@@ -4,22 +4,26 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
- * 应用优惠券请求参数
+ * Request parameters for applying a selected coupon to an order.
  */
 @Data
 public class ApplyCouponReqDTO {
 
-    @Schema(description = "用户ID", required = true)
+    @Schema(description = "User ID", required = true)
     private Long userId;
 
-    @Schema(description = "店铺编号", required = true)
+    @Schema(description = "Shop number", required = true)
     private Long shopNumber;
 
-    @Schema(description = "订单金额", required = true)
+    @Schema(description = "Order amount", required = true)
     private BigDecimal orderAmount;
 
-    @Schema(description = "订单ID", required = true)
+    @Schema(description = "Order ID", required = true)
     private Long orderId;
+
+    @Schema(description = "Order goods list")
+    private List<QueryCouponGoodsReqDTO> goodsList;
 }
