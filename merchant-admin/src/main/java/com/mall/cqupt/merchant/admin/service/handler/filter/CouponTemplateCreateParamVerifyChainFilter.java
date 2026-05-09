@@ -24,7 +24,7 @@ public class CouponTemplateCreateParamVerifyChainFilter implements MerchantAdmin
 
     @Override
     public void handler(CouponTemplateSaveReqDTO requestParam) {
-        if (ObjectUtil.equal(requestParam.getTarget(), DiscountTargetEnum.PRODUCT_SPECIFIC)) {
+        if (ObjectUtil.equal(requestParam.getTarget(), DiscountTargetEnum.PRODUCT_SPECIFIC.getType())) {
             Integer type = requestParam.getType();
             String consumeRuleStr = requestParam.getConsumeRule();
 

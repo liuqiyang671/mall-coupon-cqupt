@@ -14,6 +14,7 @@ import com.cqupt.settlement.dao.mapper.UserCouponMapper;
 import com.cqupt.settlement.dto.req.QueryCouponGoodsReqDTO;
 import com.cqupt.settlement.dto.req.QueryCouponsReqDTO;
 import com.cqupt.settlement.dto.resp.CouponsRespDTO;
+import com.cqupt.settlement.dto.resp.CouponTemplateQueryRespDTO;
 import com.cqupt.settlement.dto.resp.QueryCouponsDetailRespDTO;
 import com.cqupt.settlement.dto.resp.QueryCouponsRespDTO;
 import com.cqupt.settlement.service.CouponQueryService;
@@ -65,9 +66,10 @@ public class CouponQueryServiceImpl implements CouponQueryService {
 
     @Override
     public QueryCouponsRespDTO listQueryUserCoupons(QueryCouponsReqDTO requestParam) {
+        String userId = getQueryUserId(requestParam);
         // Step 1: 获取 Redis 中的用户优惠券列表
         Set<String> rangeUserCoupons = stringRedisTemplate.opsForZSet().range(
-                String.format(USER_COUPON_TEMPLATE_LIST_KEY, UserContext.getUserId()), 0, -1);
+                String.format(USER_COUPON_TEMPLATE_LIST_KEY, userId), 0, -1);
 
         if (rangeUserCoupons == null || rangeUserCoupons.isEmpty()) {
             return QueryCouponsRespDTO.builder()
@@ -192,7 +194,8 @@ public class CouponQueryServiceImpl implements CouponQueryService {
      * 单线程版本，好理解一些。上面的多线程就是基于这个版本演进的
      */
     public QueryCouponsRespDTO listQueryUserCouponsBySync(QueryCouponsReqDTO requestParam) {
-        Set<String> rangeUserCoupons = stringRedisTemplate.opsForZSet().range(String.format(USER_COUPON_TEMPLATE_LIST_KEY, UserContext.getUserId()), 0, -1);
+        String userId = getQueryUserId(requestParam);
+        Set<String> rangeUserCoupons = stringRedisTemplate.opsForZSet().range(String.format(USER_COUPON_TEMPLATE_LIST_KEY, userId), 0, -1);
         if (rangeUserCoupons == null || rangeUserCoupons.isEmpty()) {
             return QueryCouponsRespDTO.builder()
                     .availableCoupons(new ArrayList<>())
@@ -265,6 +268,7 @@ public class CouponQueryServiceImpl implements CouponQueryService {
             QueryCouponGoodsReqDTO couponGoods = goodsRequestMap.get(each.getGoods());
             if (couponGoods == null) {
                 notAvailableCoupons.add(BeanUtil.toBean(each, QueryCouponsDetailRespDTO.class));
+                return;
             }
             JSONObject jsonObject = JSON.parseObject(each.getConsumeRule());
             QueryCouponsDetailRespDTO resultQueryCouponDetail = BeanUtil.toBean(each, QueryCouponsDetailRespDTO.class);
@@ -308,5 +312,12 @@ public class CouponQueryServiceImpl implements CouponQueryService {
 
     private String buildCouponTemplateCacheKey(String couponTemplateId) {
         return Optional.ofNullable(redisDistributedProperties.getPrefix()).orElse("") + String.format(COUPON_TEMPLATE_KEY, couponTemplateId);
+    }
+
+    private String getQueryUserId(QueryCouponsReqDTO requestParam) {
+        if (requestParam.getUserId() != null) {
+            return String.valueOf(requestParam.getUserId());
+        }
+        return UserContext.getUserId();
     }
 }

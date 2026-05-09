@@ -14,6 +14,12 @@ import java.util.List;
 public class QueryCouponsReqDTO {
 
     /**
+     * 用户ID
+     */
+    @Schema(description = "用户ID")
+    private Long userId;
+
+    /**
      * 订单金额
      */
     @Schema(description = "订单金额", required = true)
