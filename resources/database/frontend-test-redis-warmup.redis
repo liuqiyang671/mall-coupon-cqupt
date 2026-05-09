@@ -1,0 +1,87 @@
+# Redis warmup commands for resources/database/frontend-test-data.sql.
+# Run with:
+#   redis-cli -h 127.0.0.1 -p 6379 < resources/database/frontend-test-redis-warmup.redis
+#
+# Do not warm up goods 800010. It is intentionally left without cache so the
+# cart page can show the "goods removed/off shelf" fallback branch.
+
+DEL one-coupon_engine:user-template-list:10003
+ZADD one-coupon_engine:user-template-list:10003 1776650400000 910000000000002_920000000000001 1776650700000 910000000000004_920000000000002 1776651000000 910000000000005_920000000000003 1776652500000 910000000000010_920000000000008 1776652800000 910000000000102_920000000000009
+
+DEL one-coupon_merchant-admin:goods:800001
+HSET one-coupon_merchant-admin:goods:800001 id "800001" shopNumber "1810714735922956666" categoryId "5002" name "[CQUPT-GOODS-001] 邮惠智能手环" description "用于商城首页、详情页、加购、结算和商品专属券匹配。" mainImage "https://dummyimage.com/800x800/2563eb/ffffff&text=CQUPT-GOODS-001" price "199.00" originalPrice "259.00" stock "50" sales "128" unit "件" status "1" sortOrder "10" createTime "2026-04-01 11:00:00" updateTime "2026-04-01 11:00:00" delFlag "0"
+EXPIRE one-coupon_merchant-admin:goods:800001 172800
+
+DEL one-coupon_merchant-admin:goods:800002
+HSET one-coupon_merchant-admin:goods:800002 id "800002" shopNumber "1810714735922956666" categoryId "5003" name "Type-C 快充数据线" description "用于购物车未选中项、商品列表分页和搜索。" mainImage "https://dummyimage.com/800x800/0f766e/ffffff&text=Cable" price "39.90" originalPrice "59.90" stock "88" sales "321" unit "条" status "1" sortOrder "20" createTime "2026-04-01 11:05:00" updateTime "2026-04-01 11:05:00" delFlag "0"
+EXPIRE one-coupon_merchant-admin:goods:800002 172800
+
+DEL one-coupon_merchant-admin:goods:800003
+HSET one-coupon_merchant-admin:goods:800003 id "800003" shopNumber "1810714735922956666" categoryId "5011" name "校园能量坚果包" description "库存为0，用于售罄和不可购买提示。" mainImage "https://dummyimage.com/800x800/f97316/ffffff&text=Sold+Out" price "12.90" originalPrice "18.90" stock "0" sales "490" unit "包" status "1" sortOrder "30" createTime "2026-04-01 11:10:00" updateTime "2026-04-01 11:10:00" delFlag "0"
+EXPIRE one-coupon_merchant-admin:goods:800003 172800
+
+DEL one-coupon_merchant-admin:goods:800004
+HSET one-coupon_merchant-admin:goods:800004 id "800004" shopNumber "1810714735922956666" categoryId "5021" name "低价测试贴纸" description "价格0.01、库存1，用于边界金额和低库存提示。" mainImage "https://dummyimage.com/800x800/7c3aed/ffffff&text=0.01" price "0.01" originalPrice "1.00" stock "1" sales "6" unit "张" status "1" sortOrder "40" createTime "2026-04-01 11:15:00" updateTime "2026-04-01 11:15:00" delFlag "0"
+EXPIRE one-coupon_merchant-admin:goods:800004 172800
+
+DEL one-coupon_merchant-admin:goods:800005
+HSET one-coupon_merchant-admin:goods:800005 id "800005" shopNumber "1810714735922956666" categoryId "5032" name "高价大库存收纳箱" description "价格999999.99、库存999999，用于金额和数量边界。" mainImage "https://dummyimage.com/800x800/059669/ffffff&text=999999.99" price "999999.99" originalPrice "1099999.99" stock "999999" sales "1" unit "套" status "1" sortOrder "50" createTime "2026-04-01 11:20:00" updateTime "2026-04-01 11:20:00" delFlag "0"
+EXPIRE one-coupon_merchant-admin:goods:800005 172800
+
+DEL one-coupon_merchant-admin:goods:800006
+HSET one-coupon_merchant-admin:goods:800006 id "800006" shopNumber "1810714735922956666" categoryId "5012" name "下架饮品礼盒" description "商家后台可见，用户商城不可见。" mainImage "https://dummyimage.com/800x800/64748b/ffffff&text=Off+Shelf" price "88.00" originalPrice "99.00" stock "20" sales "0" unit "盒" status "0" sortOrder "60" createTime "2026-04-01 11:25:00" updateTime "2026-04-01 11:25:00" delFlag "0"
+EXPIRE one-coupon_merchant-admin:goods:800006 172800
+
+DEL one-coupon_merchant-admin:goods:800007
+HSET one-coupon_merchant-admin:goods:800007 id "800007" shopNumber "1810714735922956666" categoryId "5022" name "违规下架纪念品" description "用于商品管理违规状态标签。" mainImage "https://dummyimage.com/800x800/dc2626/ffffff&text=Violation" price "66.00" originalPrice "88.00" stock "10" sales "3" unit "件" status "2" sortOrder "70" createTime "2026-04-01 11:30:00" updateTime "2026-04-01 11:30:00" delFlag "0"
+EXPIRE one-coupon_merchant-admin:goods:800007 172800
+
+DEL one-coupon_merchant-admin:goods:800008
+HSET one-coupon_merchant-admin:goods:800008 id "800008" shopNumber "1810714735922956666" categoryId "5031" name "无图兜底清洁套装" description "main_image为空，用于前端图片兜底展示。" mainImage "" price "29.90" originalPrice "39.90" stock "34" sales "41" unit "套" status "1" sortOrder "80" createTime "2026-04-01 11:35:00" updateTime "2026-04-01 11:35:00" delFlag "0"
+EXPIRE one-coupon_merchant-admin:goods:800008 172800
+
+DEL one-coupon_merchant-admin:goods:800009
+HSET one-coupon_merchant-admin:goods:800009 id "800009" shopNumber "1810714735922956666" categoryId "5099" name "禁用分类测试商品" description "挂在禁用分类下，用于创建和编辑校验。" mainImage "https://dummyimage.com/800x800/64748b/ffffff&text=Disabled+Category" price "19.90" originalPrice "29.90" stock "12" sales "5" unit "件" status "1" sortOrder "90" createTime "2026-04-01 11:40:00" updateTime "2026-04-01 11:40:00" delFlag "0"
+EXPIRE one-coupon_merchant-admin:goods:800009 172800
+
+DEL one-coupon_engine:template:910000000000001
+HSET one-coupon_engine:template:910000000000001 id "910000000000001" name "店铺立减20元" shopNumber "1810714735922956666" source "0" target "1" goods "" type "0" validStartTime "2026-04-01 00:00:00" validEndTime "2026-12-31 23:59:59" stock "100" receiveRule '{"limitPerPerson":3,"usageInstructions":"Frontend test: shop coupon for mall pages and settlement.","distributionMode":"RECEIVE","applicableMerchantScope":"SPECIFIED","applicableShopNumbers":"1810714735922956666"}' consumeRule '{"termsOfUse":0,"thresholdAmount":0,"maximumDiscountAmount":20.00,"maxDiscountAmount":20.00,"discountAmount":20.00,"explanationOfUnmetConditions":"当前订单暂不可用"}' status "0"
+
+DEL one-coupon_engine:template:910000000000002
+HSET one-coupon_engine:template:910000000000002 id "910000000000002" name "店铺满199减30" shopNumber "1810714735922956666" source "0" target "1" goods "" type "1" validStartTime "2026-04-01 00:00:00" validEndTime "2026-12-31 23:59:59" stock "1" receiveRule '{"limitPerPerson":1,"usageInstructions":"Frontend test: one coupon per person.","distributionMode":"RECEIVE","applicableMerchantScope":"SPECIFIED","applicableShopNumbers":"1810714735922956666"}' consumeRule '{"termsOfUse":199.00,"thresholdAmount":199.00,"maximumDiscountAmount":30.00,"maxDiscountAmount":30.00,"discountAmount":30.00,"explanationOfUnmetConditions":"订单未满199元"}' status "0"
+
+DEL one-coupon_engine:template:910000000000003
+HSET one-coupon_engine:template:910000000000003 id "910000000000003" name "店铺9折最高80" shopNumber "1810714735922956666" source "0" target "1" goods "" type "2" validStartTime "2026-04-01 00:00:00" validEndTime "2026-12-31 23:59:59" stock "50" receiveRule '{"limitPerPerson":3,"usageInstructions":"Frontend test: shop coupon for mall pages and settlement.","distributionMode":"RECEIVE","applicableMerchantScope":"SPECIFIED","applicableShopNumbers":"1810714735922956666"}' consumeRule '{"termsOfUse":100.00,"thresholdAmount":100.00,"maximumDiscountAmount":80.00,"maxDiscountAmount":80.00,"discountAmount":80.00,"discountRate":9.00,"explanationOfUnmetConditions":"订单未满100元"}' status "0"
+
+DEL one-coupon_engine:template:910000000000004
+HSET one-coupon_engine:template:910000000000004 id "910000000000004" name "商品CQUPT-GOODS-001满199减50" shopNumber "1810714735922956666" source "0" target "0" goods "CQUPT-GOODS-001" type "1" validStartTime "2026-04-01 00:00:00" validEndTime "2026-12-31 23:59:59" stock "20" receiveRule '{"limitPerPerson":3,"usageInstructions":"Frontend test: shop coupon for mall pages and settlement.","distributionMode":"RECEIVE","applicableMerchantScope":"SPECIFIED","applicableShopNumbers":"1810714735922956666"}' consumeRule '{"termsOfUse":199.00,"thresholdAmount":199.00,"maximumDiscountAmount":50.00,"maxDiscountAmount":50.00,"discountAmount":50.00,"explanationOfUnmetConditions":"指定商品未满199元或商品编码不匹配"}' status "0"
+
+DEL one-coupon_engine:template:910000000000005
+HSET one-coupon_engine:template:910000000000005 id "910000000000005" name "购物车商品800001立减15" shopNumber "1810714735922956666" source "0" target "0" goods "800001" type "0" validStartTime "2026-04-01 00:00:00" validEndTime "2026-12-31 23:59:59" stock "20" receiveRule '{"limitPerPerson":3,"usageInstructions":"Frontend test: shop coupon for mall pages and settlement.","distributionMode":"RECEIVE","applicableMerchantScope":"SPECIFIED","applicableShopNumbers":"1810714735922956666"}' consumeRule '{"termsOfUse":0,"thresholdAmount":0,"maximumDiscountAmount":15.00,"maxDiscountAmount":15.00,"discountAmount":15.00,"explanationOfUnmetConditions":"购物车商品编码不匹配"}' status "0"
+
+DEL one-coupon_engine:template:910000000000006
+HSET one-coupon_engine:template:910000000000006 id "910000000000006" name "未开始预约券满99减12" shopNumber "1810714735922956666" source "0" target "1" goods "" type "1" validStartTime "2026-05-01 10:00:00" validEndTime "2026-12-31 23:59:59" stock "100" receiveRule '{"limitPerPerson":3,"usageInstructions":"Frontend test: shop coupon for mall pages and settlement.","distributionMode":"RECEIVE","applicableMerchantScope":"SPECIFIED","applicableShopNumbers":"1810714735922956666"}' consumeRule '{"termsOfUse":99.00,"thresholdAmount":99.00,"maximumDiscountAmount":12.00,"maxDiscountAmount":12.00,"discountAmount":12.00,"explanationOfUnmetConditions":"活动尚未开始或未满99元"}' status "0"
+
+DEL one-coupon_engine:template:910000000000007
+HSET one-coupon_engine:template:910000000000007 id "910000000000007" name "已过期满59减5" shopNumber "1810714735922956666" source "0" target "1" goods "" type "1" validStartTime "2026-01-01 00:00:00" validEndTime "2026-03-31 23:59:59" stock "100" receiveRule '{"limitPerPerson":3,"usageInstructions":"Frontend test: shop coupon for mall pages and settlement.","distributionMode":"RECEIVE","applicableMerchantScope":"SPECIFIED","applicableShopNumbers":"1810714735922956666"}' consumeRule '{"termsOfUse":59.00,"thresholdAmount":59.00,"maximumDiscountAmount":5.00,"maxDiscountAmount":5.00,"discountAmount":5.00,"explanationOfUnmetConditions":"优惠券已过期"}' status "0"
+
+DEL one-coupon_engine:template:910000000000008
+HSET one-coupon_engine:template:910000000000008 id "910000000000008" name "库存为0满减券" shopNumber "1810714735922956666" source "0" target "1" goods "" type "1" validStartTime "2026-04-01 00:00:00" validEndTime "2026-12-31 23:59:59" stock "0" receiveRule '{"limitPerPerson":3,"usageInstructions":"Frontend test: shop coupon for mall pages and settlement.","distributionMode":"RECEIVE","applicableMerchantScope":"SPECIFIED","applicableShopNumbers":"1810714735922956666"}' consumeRule '{"termsOfUse":59.00,"thresholdAmount":59.00,"maximumDiscountAmount":6.00,"maxDiscountAmount":6.00,"discountAmount":6.00,"explanationOfUnmetConditions":"优惠券库存不足"}' status "0"
+
+DEL one-coupon_engine:template:910000000000009
+HSET one-coupon_engine:template:910000000000009 id "910000000000009" name "已结束店铺券" shopNumber "1810714735922956666" source "0" target "1" goods "" type "0" validStartTime "2026-04-01 00:00:00" validEndTime "2026-12-31 23:59:59" stock "100" receiveRule '{"limitPerPerson":3,"usageInstructions":"Frontend test: shop coupon for mall pages and settlement.","distributionMode":"RECEIVE","applicableMerchantScope":"SPECIFIED","applicableShopNumbers":"1810714735922956666"}' consumeRule '{"termsOfUse":0,"thresholdAmount":0,"maximumDiscountAmount":8.00,"maxDiscountAmount":8.00,"discountAmount":8.00,"explanationOfUnmetConditions":"优惠券已结束"}' status "1"
+
+DEL one-coupon_engine:template:910000000000010
+HSET one-coupon_engine:template:910000000000010 id "910000000000010" name "大库存满9999减500" shopNumber "1810714735922956666" source "0" target "1" goods "" type "1" validStartTime "2026-04-01 00:00:00" validEndTime "2026-12-31 23:59:59" stock "999999" receiveRule '{"limitPerPerson":3,"usageInstructions":"Frontend test: shop coupon for mall pages and settlement.","distributionMode":"RECEIVE","applicableMerchantScope":"SPECIFIED","applicableShopNumbers":"1810714735922956666"}' consumeRule '{"termsOfUse":9999.00,"thresholdAmount":9999.00,"maximumDiscountAmount":500.00,"maxDiscountAmount":500.00,"discountAmount":500.00,"explanationOfUnmetConditions":"订单未满9999元"}' status "0"
+
+DEL one-coupon_engine:template:910000000000101
+HSET one-coupon_engine:template:910000000000101 id "910000000000101" name "平台全场满299减40" shopNumber "0" source "1" target "1" goods "" type "1" validStartTime "2026-04-01 00:00:00" validEndTime "2026-12-31 23:59:59" stock "200" receiveRule '{"limitPerPerson":2,"usageInstructions":"Frontend test: platform coupon.","distributionMode":"RECEIVE","applicableMerchantScope":"ALL","applicableShopNumbers":""}' consumeRule '{"termsOfUse":299.00,"thresholdAmount":299.00,"maximumDiscountAmount":40.00,"maxDiscountAmount":40.00,"discountAmount":40.00,"explanationOfUnmetConditions":"订单未满299元"}' status "0"
+
+DEL one-coupon_engine:template:910000000000102
+HSET one-coupon_engine:template:910000000000102 id "910000000000102" name "平台立减8元" shopNumber "0" source "1" target "1" goods "" type "0" validStartTime "2026-04-01 00:00:00" validEndTime "2026-12-31 23:59:59" stock "500" receiveRule '{"limitPerPerson":2,"usageInstructions":"Frontend test: platform coupon.","distributionMode":"RECEIVE","applicableMerchantScope":"ALL","applicableShopNumbers":""}' consumeRule '{"termsOfUse":0,"thresholdAmount":0,"maximumDiscountAmount":8.00,"maxDiscountAmount":8.00,"discountAmount":8.00,"explanationOfUnmetConditions":"当前订单暂不可用"}' status "0"
+
+DEL one-coupon_engine:template:910000000000103
+HSET one-coupon_engine:template:910000000000103 id "910000000000103" name "平台9.5折最高60" shopNumber "0" source "1" target "1" goods "" type "2" validStartTime "2026-04-01 00:00:00" validEndTime "2026-12-31 23:59:59" stock "100" receiveRule '{"limitPerPerson":2,"usageInstructions":"Frontend test: platform coupon.","distributionMode":"RECEIVE","applicableMerchantScope":"ALL","applicableShopNumbers":""}' consumeRule '{"termsOfUse":100.00,"thresholdAmount":100.00,"maximumDiscountAmount":60.00,"maxDiscountAmount":60.00,"discountAmount":60.00,"discountRate":9.50,"explanationOfUnmetConditions":"订单未满100元"}' status "0"
+
+DEL one-coupon_engine:template:910000000000104
+HSET one-coupon_engine:template:910000000000104 id "910000000000104" name "平台已过期满99减10" shopNumber "0" source "1" target "1" goods "" type "1" validStartTime "2026-01-01 00:00:00" validEndTime "2026-03-31 23:59:59" stock "100" receiveRule '{"limitPerPerson":2,"usageInstructions":"Frontend test: platform coupon.","distributionMode":"RECEIVE","applicableMerchantScope":"ALL","applicableShopNumbers":""}' consumeRule '{"termsOfUse":99.00,"thresholdAmount":99.00,"maximumDiscountAmount":10.00,"maxDiscountAmount":10.00,"discountAmount":10.00,"explanationOfUnmetConditions":"优惠券已过期"}' status "0"

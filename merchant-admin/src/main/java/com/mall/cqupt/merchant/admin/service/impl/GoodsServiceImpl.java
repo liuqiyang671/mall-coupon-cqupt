@@ -43,6 +43,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
     private final GoodsImageMapper goodsImageMapper;
     private final GoodsAttributeMapper goodsAttributeMapper;
     private final GoodsAttributeValueMapper goodsAttributeValueMapper;
+    private final UserMapper userMapper;
     private final StringRedisTemplate stringRedisTemplate;
 
     private static final String GOODS_CACHE_KEY = "one-coupon_merchant-admin:goods:%s";
@@ -374,7 +375,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         if (UserRoleEnum.PLATFORM.getType().equals(roleType)) {
             return;
         }
-        if (UserRoleEnum.MERCHANT.getType().equals(roleType) && UserContext.getShopNumber() != null) {
+        if (UserRoleEnum.MERCHANT.getType().equals(roleType) && StrUtil.isNotBlank(UserContext.getUserId())) {
             return;
         }
         throw new ClientException("当前功能仅平台人员或商家角色可操作");
@@ -384,7 +385,18 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, GoodsDO> implemen
         if (UserRoleEnum.PLATFORM.getType().equals(UserContext.getRoleType())) {
             return 0L;
         }
-        return UserContext.getShopNumber();
+        String userId = UserContext.getUserId();
+        if (StrUtil.isBlank(userId)) {
+            throw new ClientException("当前商家账号缺少用户信息，请重新登录");
+        }
+        UserDO userDO = userMapper.selectById(Long.parseLong(userId));
+        if (userDO == null || Objects.equals(userDO.getDelFlag(), 1)) {
+            throw new ClientException("当前商家账号不存在，请重新登录");
+        }
+        if (!UserRoleEnum.MERCHANT.getType().equals(userDO.getRoleType()) || StrUtil.isBlank(userDO.getShopNumber())) {
+            throw new ClientException("当前商家账号未绑定店铺，无法管理商品");
+        }
+        return Long.parseLong(userDO.getShopNumber());
     }
 
     private GoodsDO getGoodsWithOwnerCheck(Long shopNumber, String goodsId) {

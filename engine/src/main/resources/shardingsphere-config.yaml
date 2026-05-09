@@ -19,7 +19,7 @@ rules:
     tables: # 需要分片的数据库表集合
       t_coupon_template: # 优惠券模板表
         # 真实存在数据库中的物理表
-        actualDataNodes: ds_${0..1}.t_coupon_template_${0..15}
+        actualDataNodes: ds_0.t_coupon_template_${0..7},ds_1.t_coupon_template_${8..15}
         databaseStrategy: # 分库策略
           standard: # 单分片键分库
             shardingColumn: shop_number # 分片键
@@ -29,7 +29,7 @@ rules:
             shardingColumn: shop_number # 分片键
             shardingAlgorithmName: coupon_template_table_mod # 表分片算法名称，对应 rules[0].shardingAlgorithms
       t_coupon_template_log:
-        actualDataNodes: ds_${0..1}.t_coupon_template_log_${0..15}
+        actualDataNodes: ds_0.t_coupon_template_log_${0..7},ds_1.t_coupon_template_log_${8..15}
         databaseStrategy:
           standard:
             shardingColumn: shop_number

@@ -46,4 +46,10 @@ public class CouponTemplatePageQueryReqDTO extends Page {
      */
     @Schema(description = "优惠类型 0：立减券 1：满减券 2：折扣券")
     private Integer type;
+
+    /**
+     * 是否按预约提醒场景排序：可预约券优先，已开抢券靠后
+     */
+    @Schema(description = "是否按预约提醒场景排序")
+    private Boolean remindFirst;
 }

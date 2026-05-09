@@ -12,6 +12,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -171,20 +172,29 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     @Override
     public IPage<CouponTemplateQueryRespDTO> pageAvailableCouponTemplate(CouponTemplatePageQueryReqDTO requestParam) {
-        LambdaQueryWrapper<CouponTemplateDO> queryWrapper = Wrappers.lambdaQuery(CouponTemplateDO.class)
-                .eq(CouponTemplateDO::getStatus, 0)
-                .ge(CouponTemplateDO::getValidEndTime, new Date())
-                .like(StrUtil.isNotBlank(requestParam.getName()), CouponTemplateDO::getName, requestParam.getName())
-                .eq(Objects.nonNull(requestParam.getSource()), CouponTemplateDO::getSource, requestParam.getSource())
-                .eq(Objects.nonNull(requestParam.getTarget()), CouponTemplateDO::getTarget, requestParam.getTarget())
-                .eq(Objects.nonNull(requestParam.getType()), CouponTemplateDO::getType, requestParam.getType())
-                .orderByAsc(CouponTemplateDO::getValidStartTime)
-                .orderByDesc(CouponTemplateDO::getCreateTime);
+        QueryWrapper<CouponTemplateDO> queryWrapper = Wrappers.query(CouponTemplateDO.class)
+                .eq("status", 0)
+                .eq("del_flag", 0)
+                .ge("valid_end_time", new Date())
+                .like(StrUtil.isNotBlank(requestParam.getName()), "name", requestParam.getName())
+                .eq(Objects.nonNull(requestParam.getSource()), "source", requestParam.getSource())
+                .eq(Objects.nonNull(requestParam.getTarget()), "target", requestParam.getTarget())
+                .eq(Objects.nonNull(requestParam.getType()), "type", requestParam.getType());
         if (StrUtil.isNotBlank(requestParam.getShopNumber())) {
-            queryWrapper.eq(CouponTemplateDO::getShopNumber, parseLongParam(requestParam.getShopNumber(), "店铺编号格式不正确"));
+            queryWrapper.eq("shop_number", parseLongParam(requestParam.getShopNumber(), "店铺编号格式不正确"));
         }
         if (StrUtil.isNotBlank(requestParam.getCouponTemplateId())) {
-            queryWrapper.eq(CouponTemplateDO::getId, parseLongParam(requestParam.getCouponTemplateId(), "优惠券模板 ID 格式不正确"));
+            queryWrapper.eq("id", parseLongParam(requestParam.getCouponTemplateId(), "优惠券模板 ID 格式不正确"));
+        }
+        if (Boolean.TRUE.equals(requestParam.getRemindFirst())) {
+            queryWrapper
+                    .orderByAsc("CASE WHEN valid_start_time > NOW() AND stock > 0 THEN 0 WHEN valid_start_time <= NOW() AND stock > 0 THEN 1 ELSE 2 END")
+                    .orderByAsc("valid_start_time")
+                    .orderByDesc("create_time");
+        } else {
+            queryWrapper
+                    .orderByAsc("valid_start_time")
+                    .orderByDesc("create_time");
         }
 
         Page<CouponTemplateDO> page = new Page<>(requestParam.getCurrent(), requestParam.getSize());

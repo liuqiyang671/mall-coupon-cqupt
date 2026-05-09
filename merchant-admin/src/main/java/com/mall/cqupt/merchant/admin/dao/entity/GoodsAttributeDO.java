@@ -23,6 +23,7 @@ public class GoodsAttributeDO {
 
     private Integer inputType;
 
+    @TableField("`values`")
     private String values;
 
     private Integer sortOrder;

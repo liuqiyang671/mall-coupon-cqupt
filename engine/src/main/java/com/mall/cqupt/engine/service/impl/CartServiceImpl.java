@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -51,6 +52,9 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
         if (requestParam.getGoodsId() == null) {
             throw new ClientException("商品ID不能为空");
         }
+        if (requestParam.getShopNumber() == null) {
+            throw new ClientException("店铺编号不能为空");
+        }
         if (requestParam.getQuantity() == null || requestParam.getQuantity() <= 0) {
             requestParam.setQuantity(1);
         }
@@ -60,18 +64,29 @@ public class CartServiceImpl extends ServiceImpl<CartMapper, CartDO> implements 
 
         LambdaQueryWrapper<CartDO> queryWrapper = Wrappers.lambdaQuery(CartDO.class)
                 .eq(CartDO::getUserId, userId)
-                .eq(CartDO::getGoodsId, requestParam.getGoodsId())
-                .eq(CartDO::getDelFlag, 0);
+                .eq(CartDO::getGoodsId, requestParam.getGoodsId());
         CartDO existingItem = cartMapper.selectOne(queryWrapper);
 
         if (existingItem != null) {
-            int newQuantity = existingItem.getQuantity() + requestParam.getQuantity();
+            boolean deletedItem = existingItem.getDelFlag() != null && existingItem.getDelFlag() == 1;
+            int newQuantity = deletedItem
+                    ? requestParam.getQuantity()
+                    : existingItem.getQuantity() + requestParam.getQuantity();
             if (newQuantity > MAX_QUANTITY) {
                 throw new ClientException("商品数量不能超过" + MAX_QUANTITY);
             }
-            CartDO updateDO = CartDO.builder().quantity(newQuantity).build();
+            Date now = new Date();
+            CartDO updateDO = CartDO.builder()
+                    .shopNumber(requestParam.getShopNumber())
+                    .quantity(newQuantity)
+                    .selected(1)
+                    .createTime(deletedItem ? now : existingItem.getCreateTime())
+                    .updateTime(now)
+                    .delFlag(0)
+                    .build();
             LambdaQueryWrapper<CartDO> updateWrapper = Wrappers.lambdaQuery(CartDO.class)
-                    .eq(CartDO::getId, existingItem.getId());
+                    .eq(CartDO::getId, existingItem.getId())
+                    .eq(CartDO::getUserId, userId);
             cartMapper.update(updateDO, updateWrapper);
         } else {
             long cartCount = cartMapper.selectCount(Wrappers.lambdaQuery(CartDO.class)
