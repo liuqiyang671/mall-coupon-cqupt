@@ -44,6 +44,13 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => Boolean(state.token) && Number(state.expireTime || 0) > Date.now(),
     isExpired: (state) => Boolean(state.expireTime) && Number(state.expireTime) <= Date.now(),
     displayName: (state) => state.userInfo?.nickname || state.nickname || state.userInfo?.username || state.username || '邮惠券用户',
+    shopDisplayName: (state) =>
+      state.userInfo?.nickname ||
+      state.nickname ||
+      state.userInfo?.realName ||
+      state.userInfo?.username ||
+      state.username ||
+      (state.roleType === 0 ? '平台店铺' : '当前店铺'),
     roleLabel: (state) => USER_ROLE_OPTIONS.find((role) => role.value === state.roleType)?.label || '未识别角色',
     isMerchant: (state) => state.roleType === 1,
     isPlatform: (state) => state.roleType === 0,

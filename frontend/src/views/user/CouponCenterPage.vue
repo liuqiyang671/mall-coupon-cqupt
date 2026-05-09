@@ -244,6 +244,9 @@ async function loadCoupons() {
     pagination.total = Number(page.total || 0)
     pagination.current = Number(page.current || pagination.current)
     pagination.size = Number(page.size || pagination.size)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '优惠券加载失败'
+    ElMessage.error(message)
   } finally {
     loading.value = false
   }

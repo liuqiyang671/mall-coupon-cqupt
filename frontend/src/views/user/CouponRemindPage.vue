@@ -37,7 +37,7 @@
               closable
               @close="cancelRemind(remind, index)"
             >
-              {{ remind.remindType[index] || '提醒' }} · {{ time }}
+              {{ formatRemindTypeLabel(remind.remindType[index]) }} · {{ formatDateTime(time) }}
             </el-tag>
           </div>
         </article>
@@ -48,28 +48,73 @@
       </div>
     </section>
 
-    <el-dialog v-model="createVisible" title="新建开抢提醒" width="520px">
+    <el-dialog v-model="createVisible" title="新建开抢提醒" width="760px">
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-        <div class="two-column-form">
-          <el-form-item label="优惠券模板 ID" prop="couponTemplateId">
-            <el-input v-model.trim="form.couponTemplateId" placeholder="请输入模板 ID" clearable />
-          </el-form-item>
-          <el-form-item label="店铺编号" prop="shopNumber">
-            <el-input v-model.trim="form.shopNumber" placeholder="请输入店铺编号" clearable />
-          </el-form-item>
+        <el-form-item label="选择优惠券" prop="couponTemplateId">
+          <div class="coupon-picker">
+            <div class="coupon-picker__filters">
+              <el-input v-model.trim="couponFilters.name" placeholder="搜索优惠券名称" clearable @keyup.enter="searchCandidateCoupons" />
+              <el-input v-model.trim="couponFilters.shopNumber" placeholder="店铺编号" clearable @keyup.enter="searchCandidateCoupons" />
+              <el-select v-model="couponFilters.source" placeholder="券归属" clearable>
+                <el-option v-for="item in couponSourceOptions" :key="item.value" :label="item.label" :value="item.value" />
+              </el-select>
+              <el-button :icon="Search" @click="searchCandidateCoupons">查询</el-button>
+            </div>
+
+            <div v-loading="couponLoading" class="coupon-picker__list">
+              <button
+                v-for="coupon in candidateCoupons"
+                :key="couponKey(coupon)"
+                class="coupon-picker__item"
+                :class="{
+                  'is-active': selectedCouponKey === couponKey(coupon),
+                  'is-disabled': !canRemindCoupon(coupon)
+                }"
+                type="button"
+                @click="selectCoupon(coupon)"
+              >
+                <span class="coupon-picker__benefit">{{ formatCouponBenefit(couponTemplateType(coupon), coupon.consumeRule) }}</span>
+                <span class="coupon-picker__body">
+                  <span class="coupon-picker__title">
+                    <strong>{{ coupon.name }}</strong>
+                    <el-tag :type="coupon.source === 1 ? 'warning' : 'success'" size="small">
+                      {{ getCouponSourceText(coupon.source) }}
+                    </el-tag>
+                  </span>
+                  <span class="coupon-picker__meta">
+                    店铺 {{ coupon.shopNumber || '-' }} · {{ getCouponTargetText(coupon.target) }}
+                    <template v-if="coupon.goods">：{{ coupon.goods }}</template>
+                  </span>
+                  <span class="coupon-picker__chips">
+                    <el-tag size="small" effect="plain">{{ formatReceiveLimit(coupon.receiveRule) }}</el-tag>
+                    <el-tag size="small" effect="plain">{{ coupon.validStartTime }} 开抢</el-tag>
+                  </span>
+                </span>
+                <el-tag :type="remindAvailabilityTagType(coupon)" size="small">
+                  {{ remindAvailabilityText(coupon) }}
+                </el-tag>
+              </button>
+
+              <el-empty v-if="!couponLoading && candidateCoupons.length === 0" description="暂无可预约优惠券" />
+            </div>
+
+            <div v-if="candidateCoupons.length" class="coupon-picker__footer">
+              <el-pagination
+                v-model:current-page="couponPagination.current"
+                small
+                background
+                :page-size="couponPagination.size"
+                :total="couponPagination.total"
+                layout="prev, pager, next"
+                @current-change="loadCandidateCoupons"
+              />
+            </div>
+          </div>
+        </el-form-item>
+        <div v-if="selectedCoupon" class="selected-coupon-summary">
+          <span>已选：{{ selectedCoupon.name }}</span>
+          <strong>{{ selectedCoupon.validStartTime }} 开抢</strong>
         </div>
-        <el-form-item label="优惠券名称">
-          <el-input v-model.trim="form.name" placeholder="用于提醒列表展示，可选" clearable />
-        </el-form-item>
-        <el-form-item label="开抢时间" prop="startTime">
-          <el-date-picker
-            v-model="form.startTime"
-            type="datetime"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            placeholder="选择优惠券开始领取时间"
-            style="width: 100%"
-          />
-        </el-form-item>
         <div class="two-column-form">
           <el-form-item label="提前提醒" prop="remindTime">
             <el-select v-model="form.remindTime">
@@ -96,14 +141,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import { BellPlus, RefreshCw } from 'lucide-vue-next'
-import { couponRemindApi } from '@/api/coupon'
+import { BellPlus, RefreshCw, Search } from 'lucide-vue-next'
+import { couponCenterApi, couponRemindApi } from '@/api/coupon'
 import PermissionGate from '@/components/auth/PermissionGate.vue'
 import { useAuthStore } from '@/stores/auth'
-import type { CouponRemind, CouponRemindCreatePayload, CouponType } from '@/types/coupon'
-import { formatReceiveLimit, getCouponTargetText, getCouponTypeText } from '@/utils/coupon'
+import type { CouponRemind, CouponRemindCreatePayload, CouponSource, CouponTemplate, CouponType } from '@/types/coupon'
+import { formatCouponBenefit, formatReceiveLimit, getCouponSourceText, getCouponTargetText, getCouponTypeText } from '@/utils/coupon'
 
 interface RemindForm {
   couponTemplateId: string
@@ -119,10 +164,31 @@ const authStore = useAuthStore()
 
 const loading = ref(false)
 const submitting = ref(false)
+const couponLoading = ref(false)
 const createVisible = ref(false)
 const reminds = ref<CouponRemind[]>([])
+const candidateCoupons = ref<CouponTemplate[]>([])
+const selectedCoupon = ref<CouponTemplate | null>(null)
 const formRef = ref<FormInstance>()
 const form = reactive<RemindForm>(createDefaultForm())
+
+const selectedCouponKey = computed(() => (selectedCoupon.value ? couponKey(selectedCoupon.value) : ''))
+
+const couponPagination = reactive({
+  current: 1,
+  size: 5,
+  total: 0
+})
+
+const couponFilters = reactive<{
+  name: string
+  shopNumber: string
+  source?: CouponSource
+}>({
+  name: '',
+  shopNumber: '',
+  source: undefined
+})
 
 const remindTimeOptions = [
   { label: '提前 5 分钟', value: 5 },
@@ -132,10 +198,13 @@ const remindTimeOptions = [
   { label: '提前 60 分钟', value: 60 }
 ]
 
+const couponSourceOptions = [
+  { label: '店铺券', value: 0 },
+  { label: '平台券', value: 1 }
+] as const
+
 const rules: FormRules<RemindForm> = {
-  couponTemplateId: [{ required: true, message: '请输入优惠券模板 ID', trigger: 'blur' }],
-  shopNumber: [{ required: true, message: '请输入店铺编号', trigger: 'blur' }],
-  startTime: [{ required: true, message: '请选择开抢时间', trigger: 'change' }],
+  couponTemplateId: [{ required: true, message: '请选择要提醒的优惠券', trigger: 'change' }],
   remindTime: [{ required: true, message: '请选择提前提醒时间', trigger: 'change' }],
   type: [{ required: true, message: '请选择提醒方式', trigger: 'change' }],
   contact: [
@@ -179,24 +248,74 @@ async function loadReminds() {
   }
 }
 
+async function loadCandidateCoupons() {
+  couponLoading.value = true
+  try {
+    const page = await couponCenterApi.page({
+      current: couponPagination.current,
+      size: couponPagination.size,
+      name: couponFilters.name || undefined,
+      shopNumber: couponFilters.shopNumber || undefined,
+      source: couponFilters.source,
+      remindFirst: true
+    })
+    candidateCoupons.value = page.records || []
+    couponPagination.total = Number(page.total || 0)
+    couponPagination.current = Number(page.current || couponPagination.current)
+    couponPagination.size = Number(page.size || couponPagination.size)
+  } finally {
+    couponLoading.value = false
+  }
+}
+
+function searchCandidateCoupons() {
+  couponPagination.current = 1
+  void loadCandidateCoupons()
+}
+
 function openCreateDialog() {
   Object.assign(form, createDefaultForm())
+  selectedCoupon.value = null
+  couponFilters.name = ''
+  couponFilters.shopNumber = ''
+  couponFilters.source = undefined
+  couponPagination.current = 1
   createVisible.value = true
+  void loadCandidateCoupons()
+  setTimeout(() => formRef.value?.clearValidate(), 0)
+}
+
+function selectCoupon(coupon: CouponTemplate) {
+  if (!canRemindCoupon(coupon)) {
+    ElMessage.warning(remindAvailabilityText(coupon) === '已开抢' ? '该优惠券已经开始领取，无法创建开抢前提醒' : '该优惠券暂不可预约提醒')
+    return
+  }
+  selectedCoupon.value = coupon
+  form.couponTemplateId = String(coupon.id)
+  form.shopNumber = String(coupon.shopNumber)
+  form.name = coupon.name
+  form.startTime = coupon.validStartTime
+  void formRef.value?.validateField('couponTemplateId')
 }
 
 async function submitRemind() {
   await formRef.value?.validate()
+  if (!selectedCoupon.value || !canRemindCoupon(selectedCoupon.value)) {
+    ElMessage.warning('请选择一张可预约的优惠券')
+    return
+  }
   submitting.value = true
   try {
+    const coupon = selectedCoupon.value
     const payload: CouponRemindCreatePayload = {
-      couponTemplateId: form.couponTemplateId,
-      shopNumber: form.shopNumber,
+      couponTemplateId: String(coupon.id),
+      shopNumber: String(coupon.shopNumber),
       userId: authStore.userId,
-      name: form.name || undefined,
+      name: coupon.name || undefined,
       contact: form.contact,
       type: form.type,
       remindTime: form.remindTime,
-      startTime: form.startTime
+      startTime: coupon.validStartTime
     }
     await couponRemindApi.create(payload)
     ElMessage.success('预约提醒已创建')
@@ -233,7 +352,24 @@ function getRemindMinutes(remind: CouponRemind, index: number) {
 }
 
 function getRemindType(label?: string) {
-  return label?.includes('短信') ? 1 : 0
+  if (!label) return 0
+  return label.includes('短信') || label.includes('鐭俊') || label.toLowerCase().includes('message') ? 1 : 0
+}
+
+function formatRemindTypeLabel(label?: string) {
+  if (!label) return '提醒'
+  if (label.includes('短信') || label.includes('鐭俊') || label.toLowerCase().includes('message')) return '短信提醒'
+  if (label.includes('邮件') || label.includes('閭欢') || label.toLowerCase().includes('email')) return '邮件提醒'
+  return label
+}
+
+function formatDateTime(value?: string) {
+  if (!value) return '-'
+  const timestamp = timeOf(value)
+  if (!Number.isFinite(timestamp) || timestamp <= 0) return value
+  const date = new Date(timestamp)
+  const pad = (num: number) => String(num).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
 function timeOf(value?: string) {
@@ -242,6 +378,38 @@ function timeOf(value?: string) {
 
 function couponType(remind: CouponRemind): CouponType {
   return (remind.type ?? 1) as CouponType
+}
+
+function couponTemplateType(coupon: CouponTemplate): CouponType {
+  return (coupon.type ?? 1) as CouponType
+}
+
+function couponKey(coupon: CouponTemplate) {
+  return `${coupon.shopNumber || 'platform'}-${coupon.id || coupon.name}`
+}
+
+function canRemindCoupon(coupon: CouponTemplate) {
+  return Boolean(coupon.id && coupon.shopNumber)
+    && coupon.status !== 1
+    && Number(coupon.stock || 0) > 0
+    && timeOf(coupon.validStartTime) > Date.now()
+    && timeOf(coupon.validEndTime) > Date.now()
+}
+
+function remindAvailabilityText(coupon: CouponTemplate) {
+  if (!coupon.id || !coupon.shopNumber) return '信息不完整'
+  if (coupon.status === 1 || timeOf(coupon.validEndTime) <= Date.now()) return '已结束'
+  if (Number(coupon.stock || 0) <= 0) return '已抢光'
+  if (timeOf(coupon.validStartTime) <= Date.now()) return '已开抢'
+  return '可预约'
+}
+
+function remindAvailabilityTagType(coupon: CouponTemplate) {
+  const text = remindAvailabilityText(coupon)
+  if (text === '可预约') return 'success'
+  if (text === '已开抢') return 'warning'
+  if (text === '已抢光' || text === '已结束') return 'danger'
+  return 'info'
 }
 
 onMounted(() => {
@@ -315,9 +483,142 @@ onMounted(() => {
   align-content: center;
 }
 
+.coupon-picker {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+.coupon-picker__filters {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 150px 130px auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.coupon-picker__list {
+  display: grid;
+  gap: 10px;
+  min-height: 220px;
+}
+
+.coupon-picker__item {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out);
+}
+
+.coupon-picker__item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(154, 27, 61, 0.28);
+  box-shadow: var(--shadow-md);
+}
+
+.coupon-picker__item.is-active {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(154, 27, 61, 0.1);
+}
+
+.coupon-picker__item.is-disabled {
+  opacity: 0.62;
+}
+
+.coupon-picker__benefit {
+  display: grid;
+  min-height: 74px;
+  place-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--gradient-coupon-fixed);
+  font-family: var(--font-family-number);
+  font-size: 18px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.coupon-picker__body,
+.coupon-picker__title,
+.coupon-picker__chips {
+  display: flex;
+}
+
+.coupon-picker__body {
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.coupon-picker__title {
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.coupon-picker__title strong,
+.selected-coupon-summary span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coupon-picker__meta {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.coupon-picker__chips {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.coupon-picker__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.selected-coupon-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border: 1px solid rgba(154, 27, 61, 0.14);
+  border-radius: 8px;
+  color: var(--color-brand-dark);
+  background: rgba(255, 245, 247, 0.82);
+  font-size: 13px;
+}
+
+.selected-coupon-summary strong {
+  flex: 0 0 auto;
+  color: var(--color-brand);
+}
+
 @media (max-width: 900px) {
-  .remind-card {
+  .remind-card,
+  .coupon-picker__filters,
+  .coupon-picker__item {
     grid-template-columns: 1fr;
+  }
+
+  .selected-coupon-summary {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 </style>

@@ -8,6 +8,7 @@ export const useCartStore = defineStore('cart', () => {
   const summary = ref<CartSummary | null>(null)
   const loading = ref(false)
   const initialized = ref(false)
+  let summaryRequestSeq = 0
 
   const items = computed(() => summary.value?.items ?? [])
   const totalCount = computed(() => summary.value?.totalCount ?? 0)
@@ -24,17 +25,22 @@ export const useCartStore = defineStore('cart', () => {
   })
 
   async function fetchSummary() {
-    if (loading.value) return
+    const requestSeq = ++summaryRequestSeq
     loading.value = true
     try {
-      summary.value = await cartApi.getSummary()
-      initialized.value = true
+      const nextSummary = await cartApi.getSummary()
+      if (requestSeq === summaryRequestSeq) {
+        summary.value = nextSummary
+        initialized.value = true
+      }
     } catch (e: any) {
-      if (e?.code !== '401') {
+      if (requestSeq === summaryRequestSeq && e?.code !== '401') {
         console.error('获取购物车失败:', e)
       }
     } finally {
-      loading.value = false
+      if (requestSeq === summaryRequestSeq) {
+        loading.value = false
+      }
     }
   }
 
@@ -145,7 +151,9 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   function reset() {
+    summaryRequestSeq += 1
     summary.value = null
+    loading.value = false
     initialized.value = false
   }
 

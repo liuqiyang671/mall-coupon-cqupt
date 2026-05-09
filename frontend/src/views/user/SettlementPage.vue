@@ -221,6 +221,7 @@ async function queryCoupons() {
   querying.value = true
   try {
     const result = await settlementApi.queryCoupons({
+      userId: authStore.userId,
       orderAmount: Number(orderForm.orderAmount || 0),
       shopNumber: orderForm.shopNumber,
       goodsList: orderForm.goodsList.filter((goods) => goods.goodsNumber)

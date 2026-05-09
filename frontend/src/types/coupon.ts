@@ -36,6 +36,7 @@ export interface CouponCenterQuery {
   source?: CouponSource
   target?: CouponTarget
   type?: CouponType
+  remindFirst?: boolean
 }
 
 export interface CouponTemplateSavePayload {
@@ -189,6 +190,7 @@ export interface SettlementGoods {
 }
 
 export interface SettlementCouponQueryPayload {
+  userId?: string | number
   orderAmount: number
   shopNumber: string
   goodsList: SettlementGoods[]

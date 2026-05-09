@@ -50,11 +50,16 @@ const router = useRouter()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
 
-watch(() => authStore.isAuthenticated, (isAuthenticated) => {
-  if (isAuthenticated && authStore.isCustomer && !cartStore.initialized) {
-    cartStore.fetchSummary()
-  }
-}, { immediate: true })
+watch(
+  () => `${authStore.isAuthenticated}:${authStore.isCustomer}:${authStore.userId}`,
+  () => {
+    cartStore.reset()
+    if (authStore.isAuthenticated && authStore.isCustomer) {
+      void cartStore.fetchSummary()
+    }
+  },
+  { immediate: true }
+)
 
 const navItems = [
   { to: '/user/products', label: '商品', icon: Search },

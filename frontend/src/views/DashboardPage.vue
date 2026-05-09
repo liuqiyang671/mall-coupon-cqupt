@@ -20,8 +20,8 @@
       <strong>{{ authStore.roleLabel }}</strong>
     </article>
     <article v-if="authStore.isMerchant" class="surface-card dashboard-card">
-      <p class="metric-label">店铺编号</p>
-      <strong>{{ authStore.shopNumber || '系统自动生成后可用' }}</strong>
+      <p class="metric-label">店铺名称</p>
+      <strong>{{ authStore.shopDisplayName }}</strong>
     </article>
     <article class="surface-card dashboard-card">
       <p class="metric-label">账号状态</p>

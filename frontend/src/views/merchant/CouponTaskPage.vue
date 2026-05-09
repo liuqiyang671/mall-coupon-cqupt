@@ -5,10 +5,10 @@
         <div>
           <p class="eyebrow">Coupon Push Task</p>
           <h3>推送任务管理</h3>
-          <p class="muted">面向商家店铺的批量发券任务，按当前店铺编号隔离任务、模板和发放记录。</p>
+          <p class="muted">面向商家店铺的批量发券任务，按当前店铺隔离任务、模板和发放记录。</p>
         </div>
         <div class="toolbar-actions">
-          <el-tag type="success">{{ authStore.shopNumber || '当前店铺' }}</el-tag>
+          <el-tag type="success">店铺 {{ authStore.shopDisplayName }}</el-tag>
           <el-button type="primary" :icon="Plus" @click="openCreateDrawer">新建推送任务</el-button>
         </div>
       </div>

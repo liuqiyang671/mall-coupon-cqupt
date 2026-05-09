@@ -171,7 +171,7 @@
         </template>
         <template v-else>
           <el-form-item label="所属店铺">
-            <el-input :model-value="authStore.shopNumber || '当前商家店铺'" disabled />
+            <el-input :model-value="authStore.shopDisplayName" disabled />
           </el-form-item>
         </template>
 

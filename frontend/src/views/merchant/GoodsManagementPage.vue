@@ -8,7 +8,7 @@
           <p class="muted">维护当前店铺商品、分类、图片、库存和上下架状态。</p>
         </div>
         <div class="toolbar-actions">
-          <el-tag type="info">店铺 {{ authStore.shopNumber || '-' }}</el-tag>
+          <el-tag type="info">店铺 {{ authStore.shopDisplayName }}</el-tag>
           <el-button :icon="FolderPlus" @click="openCategoryDialog">新增分类</el-button>
           <el-button type="primary" :icon="Plus" @click="openCreateDrawer">新增商品</el-button>
         </div>
@@ -253,7 +253,7 @@
           </div>
         </div>
         <el-descriptions :column="1" border>
-          <el-descriptions-item label="店铺编号">{{ selectedGoods.shopNumber }}</el-descriptions-item>
+          <el-descriptions-item label="所属店铺">{{ authStore.shopDisplayName }}</el-descriptions-item>
           <el-descriptions-item label="分类">{{ selectedGoods.categoryName || categoryNameById(selectedGoods.categoryId) || '-' }}</el-descriptions-item>
           <el-descriptions-item label="价格">¥{{ money(selectedGoods.price) }}</el-descriptions-item>
           <el-descriptions-item label="原价">¥{{ money(selectedGoods.originalPrice || selectedGoods.price) }}</el-descriptions-item>
@@ -480,6 +480,9 @@ async function loadGoods() {
     pagination.total = Number(page.total || 0)
     pagination.current = Number(page.current || pagination.current)
     pagination.size = Number(page.size || pagination.size)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '商品列表加载失败'
+    ElMessage.error(message)
   } finally {
     loading.value = false
   }
