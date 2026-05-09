@@ -11,31 +11,35 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 /**
- * 百万 Excel 文件生成单元测试
+ * File-generation integration test; writes an Excel file and is excluded from default mvn test.
  */
-public final class ExcelGenerateTests {
+@Tag("integration")
+public final class ExcelGenerateIT {
 
-    /**
-     * 写入优惠券推送示例 Excel 的数据，默认 20 万行，自行控制即可
-     */
     private final int writeNum = 5001;
     private final Faker faker = new Faker(Locale.CHINA);
     private final String excelPath = Paths.get("").toAbsolutePath().getParent() + "/tmp";
 
     @Test
+    @Timeout(value = 1, unit = TimeUnit.MINUTES)
     public void testExcelGenerate() {
         if (!FileUtil.exist(excelPath)) {
             FileUtil.mkdir(excelPath);
         }
-        String fileName = excelPath + "/oneCoupon任务推送Excel.xlsx";
-        EasyExcel.write(fileName, ExcelGenerateDemoData.class).sheet("优惠券推送列表").doWrite(data());
+        String fileName = excelPath + "/oneCouponTaskPushExcel.xlsx";
+        EasyExcel.write(fileName, ExcelGenerateDemoData.class)
+                .sheet("coupon-task-push-list")
+                .doWrite(data());
     }
 
     private List<ExcelGenerateDemoData> data() {
@@ -51,10 +55,6 @@ public final class ExcelGenerateTests {
         return list;
     }
 
-
-    /**
-     * 百万 Excel 生成器示例数据模型
-     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -62,15 +62,15 @@ public final class ExcelGenerateTests {
     static class ExcelGenerateDemoData {
 
         @ColumnWidth(30)
-        @ExcelProperty("用户ID")
+        @ExcelProperty("userId")
         private String userId;
 
         @ColumnWidth(20)
-        @ExcelProperty("手机号")
+        @ExcelProperty("phone")
         private String phone;
 
         @ColumnWidth(30)
-        @ExcelProperty("邮箱")
+        @ExcelProperty("mail")
         private String mail;
     }
 }

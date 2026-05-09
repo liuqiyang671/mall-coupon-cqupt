@@ -1,10 +1,10 @@
 package com.mall.cqupt.engine;
 
-
 import com.mall.cqupt.engine.dto.req.CouponTemplateRemindQueryReqDTO;
 import com.mall.cqupt.engine.dto.resp.CouponTemplateRemindQueryRespDTO;
 import com.mall.cqupt.engine.service.CouponTemplateRemindService;
 import jakarta.annotation.Resource;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,16 +12,22 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
 
+/**
+ * Redis-backed integration test, isolated from default mvn test by the *IT naming convention.
+ */
+@Tag("integration")
 @SpringBootTest
-@TestPropertySource(properties = {
-        "spring.data.redis.host=43.139.79.212",// 直接在这里强制指定 IP
-        "spring.data.redis.port=6379",
-        "spring.data.redis.password=Lqy259931",
-
-})
-@TestPropertySource(locations = "classpath:application.yaml")
+@TestPropertySource(
+        locations = "classpath:application.yaml",
+        properties = {
+                "spring.data.redis.host=${TEST_REDIS_HOST:127.0.0.1}",
+                "spring.data.redis.port=${TEST_REDIS_PORT:6379}",
+                "spring.data.redis.password=${TEST_REDIS_PASSWORD:}"
+        }
+)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class CouponTemplateServiceRemindTests {
+class CouponTemplateServiceRemindIT {
+
     @Resource
     private CouponTemplateRemindService couponTemplateRemindService;
 
@@ -32,7 +38,7 @@ class CouponTemplateServiceRemindTests {
 
         List<CouponTemplateRemindQueryRespDTO> resp = couponTemplateRemindService.listCouponRemind(req);
         for (CouponTemplateRemindQueryRespDTO couponTemplateRemindQueryRespDTO : resp) {
-            System.out.println(couponTemplateRemindQueryRespDTO.toString());
+            System.out.println(couponTemplateRemindQueryRespDTO);
         }
     }
 }

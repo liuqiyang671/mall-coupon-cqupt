@@ -1,11 +1,16 @@
 package com.mall.cqupt.merchant.admin.sharding;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 /**
  * 创建优惠券项目中需要分片数据库表 SQL 语句
  */
-public class AutoCreateShardingTableTests {
+/**
+ * Manual DDL helper, isolated from the default unit-test run.
+ */
+@Tag("integration")
+public class AutoCreateShardingTableIT {
 
     private final String couponTable = "CREATE TABLE `t_coupon_template_%d` (\n" +
             "  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',\n" +
