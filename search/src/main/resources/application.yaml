@@ -5,7 +5,6 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6379
-      password: Lqy259931
   elasticsearch:
     uris: http://43.139.79.212:9200
 server:
@@ -45,7 +44,7 @@ knife4j:
     language: zh_cn
 
 rocketmq:
-  name-server: common-rocketmq-dev.magestack.cn:9876
+  name-server: 127.0.0.1:9876
   producer:
     group: oneCoupon_merchant-admin${unique-name:}-service_common-message-execute_pg
     send-message-timeout: 2000

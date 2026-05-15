@@ -8,7 +8,8 @@
 
 local function combineFields(firstField, secondField)
     -- 确定 SECOND_FIELD_BITS 为 14，因为 secondField 最大为 9999
-    local SECOND_FIELD_BITS = 14
+    -- 14 改为 16，改为 16 后能支持的最大为 65535，这样我们单次压测的时候只要不高于 65535 的样本，都能够支持。
+    local SECOND_FIELD_BITS = 16
 
     -- 根据 firstField 的实际值，计算其对应的二进制表示
     -- 由于 firstField 的范围是0-2，我们可以直接使用它的值

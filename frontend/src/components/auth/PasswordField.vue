@@ -3,6 +3,7 @@
     :model-value="modelValue"
     :type="visible ? 'text' : 'password'"
     :placeholder="placeholder"
+    :data-testid="dataTestid"
     autocomplete="current-password"
     clearable
     @update:model-value="emit('update:modelValue', String($event))"
@@ -24,6 +25,7 @@ withDefaults(
   defineProps<{
     modelValue: string
     placeholder?: string
+    dataTestid?: string
   }>(),
   {
     placeholder: '请输入密码'

@@ -9,25 +9,25 @@
 
       <el-alert v-if="errorMessage" :title="errorMessage" type="error" show-icon :closable="false" class="form-alert" />
 
-      <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @keyup.enter="submit">
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top" data-testid="login-form" @keyup.enter="submit">
         <el-form-item label="登录身份" prop="roleType">
-          <el-radio-group v-model="form.roleType" class="role-selector">
-            <el-radio-button v-for="role in roleOptions" :key="role.value" :label="role.value">
+          <el-radio-group v-model="form.roleType" class="role-selector" data-testid="login-role-selector">
+            <el-radio-button v-for="role in roleOptions" :key="role.value" :label="role.value" :data-testid="`login-role-${role.value}`">
               {{ role.label }}
             </el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="用户名" prop="username">
-          <el-input v-model.trim="form.username" placeholder="请输入用户名" clearable autocomplete="username" />
+          <el-input v-model.trim="form.username" placeholder="请输入用户名" clearable autocomplete="username" data-testid="login-username" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <PasswordField v-model="form.password" />
+          <PasswordField v-model="form.password" data-testid="login-password" />
         </el-form-item>
         <div class="form-row-between">
           <el-checkbox v-model="form.remember">记住登录状态</el-checkbox>
           <RouterLink to="/forgot-password">忘记密码？</RouterLink>
         </div>
-        <el-button class="form-submit" type="primary" :icon="LogIn" :loading="submitting" @click="submit">登录</el-button>
+        <el-button class="form-submit" type="primary" :icon="LogIn" :loading="submitting" data-testid="login-submit" @click="submit">登录</el-button>
       </el-form>
 
       <p class="form-switch">还没有账号？<RouterLink to="/register">立即注册</RouterLink></p>

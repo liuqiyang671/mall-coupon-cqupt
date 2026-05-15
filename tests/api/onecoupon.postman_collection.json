@@ -1,0 +1,1073 @@
+{
+  "info": {
+    "_postman_id": "9df06f84-a6ab-4d51-a1b7-5190e3aa5b4c",
+    "name": "OneCoupon API Regression",
+    "description": "API regression collection for merchant admin, engine, cart, and settlement flows.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const now = Date.now();",
+          "if (!pm.environment.get(\"runId\")) { pm.environment.set(\"runId\", String(now)); }",
+          "if (!pm.environment.get(\"merchantShopNumber\")) { pm.environment.set(\"merchantShopNumber\", pm.environment.get(\"shopNumber\")); }",
+          "if (!pm.environment.get(\"customerUserId\")) { pm.environment.set(\"customerUserId\", pm.environment.get(\"seedCustomerUserId\")); }",
+          "if (!pm.environment.get(\"cartId\")) { pm.environment.set(\"cartId\", pm.environment.get(\"seedCartId\")); }",
+          "if (!pm.environment.get(\"applyCouponTemplateId\")) { pm.environment.set(\"applyCouponTemplateId\", pm.environment.get(\"seedApplyCouponTemplateId\")); }"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Merchant Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"login returns token and user id\", () => {",
+                  "  pm.expect(json.data).to.be.an(\"object\");",
+                  "  pm.expect(json.data.token).to.be.a(\"string\").and.not.empty;",
+                  "  pm.expect(json.data.userId).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.environment.set(\"merchantToken\", json.data.token);",
+                  "pm.environment.set(\"merchantUserId\", String(json.data.userId));",
+                  "pm.environment.set(\"merchantShopNumber\", pm.environment.get(\"shopNumber\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{merchantUsername}}\",\n  \"password\": \"{{merchantPassword}}\",\n  \"roleType\": {{merchantRoleType}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/user/login"
+          }
+        },
+        {
+          "name": "Customer Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"login returns token and user id\", () => {",
+                  "  pm.expect(json.data).to.be.an(\"object\");",
+                  "  pm.expect(json.data.token).to.be.a(\"string\").and.not.empty;",
+                  "  pm.expect(json.data.userId).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.environment.set(\"customerToken\", json.data.token);",
+                  "pm.environment.set(\"customerUserId\", String(json.data.userId));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{customerUsername}}\",\n  \"password\": \"{{customerPassword}}\",\n  \"roleType\": {{customerRoleType}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/user/login"
+          }
+        },
+        {
+          "name": "Auth Failure - User Info Without Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is unauthorized\", () => pm.expect(String(json.code)).to.eql(\"A000001\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/user/info"
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get Merchant User Info",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"user info has core fields\", () => {",
+                  "  pm.expect(json.data.userId).to.be.a(\"string\").and.not.empty;",
+                  "  pm.expect(json.data.username).to.eql(pm.environment.get(\"merchantUsername\"));",
+                  "  pm.expect(json.data.roleType).to.eql(Number(pm.environment.get(\"merchantRoleType\")));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{merchantToken}}"
+              }
+            ],
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/user/info"
+          }
+        },
+        {
+          "name": "Get Customer User Info",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"customer info has core fields\", () => {",
+                  "  pm.expect(json.data.userId).to.be.a(\"string\").and.not.empty;",
+                  "  pm.expect(json.data.username).to.eql(pm.environment.get(\"customerUsername\"));",
+                  "  pm.expect(json.data.roleType).to.eql(Number(pm.environment.get(\"customerRoleType\")));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ],
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/user/info"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Goods Management",
+      "item": [
+        {
+          "name": "List Goods Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"category tree is returned\", () => pm.expect(json.data).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{merchantToken}}"
+              }
+            ],
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/goods-category/tree"
+          }
+        },
+        {
+          "name": "List Goods Attributes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"attribute list is returned\", () => pm.expect(json.data).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{merchantToken}}"
+              }
+            ],
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/goods-attribute/list"
+          }
+        },
+        {
+          "name": "Create Goods",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"createdGoodsName\", `Postman Regression Goods ${Date.now()}`);",
+                  "pm.environment.unset(\"createdGoodsId\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{merchantToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{createdGoodsName}}\",\n  \"categoryId\": {{seedCategoryId}},\n  \"description\": \"Postman/Newman regression goods\",\n  \"mainImage\": \"https://dummyimage.com/800x800/2563eb/ffffff&text=API\",\n  \"price\": 19.90,\n  \"originalPrice\": 29.90,\n  \"stock\": 20,\n  \"unit\": \"piece\",\n  \"sortOrder\": 900,\n  \"imageUrls\": [\n    \"https://dummyimage.com/800x800/2563eb/ffffff&text=API\"\n  ],\n  \"attributeValues\": [\n    {\n      \"attributeId\": {{seedAttributeId}},\n      \"attributeValue\": \"black\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/goods/save"
+          }
+        },
+        {
+          "name": "Query Created Goods",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"created goods appears in page\", () => {",
+                  "  pm.expect(json.data.records).to.be.an(\"array\").and.not.empty;",
+                  "  pm.expect(json.data.records[0].name).to.eql(pm.environment.get(\"createdGoodsName\"));",
+                  "});",
+                  "const idFromText = (pm.response.text().match(/\\\"id\\\"\\s*:\\s*\\\"?(\\d{5,})\\\"?/) || [])[1];",
+                  "pm.environment.set(\"createdGoodsId\", idFromText || String(json.data.records[0].id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{merchantToken}}"
+              }
+            ],
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/goods/page?current=1&size=10&name={{createdGoodsName}}"
+          }
+        },
+        {
+          "name": "Get Goods Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"goods detail has key fields\", () => {",
+                  "  pm.expect(json.data.id).to.exist;",
+                  "  pm.expect(json.data.name).to.eql(pm.environment.get(\"createdGoodsName\"));",
+                  "  pm.expect(json.data.price).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{merchantToken}}"
+              }
+            ],
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/goods/find?goodsId={{createdGoodsId}}"
+          }
+        },
+        {
+          "name": "Adjust Goods Stock",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{merchantToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"goodsId\": {{createdGoodsId}},\n  \"quantity\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/goods/adjust-stock"
+          }
+        },
+        {
+          "name": "Update Goods Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{merchantToken}}"
+              }
+            ],
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/goods/update-status?goodsId={{createdGoodsId}}&status=1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Coupon Template",
+      "item": [
+        {
+          "name": "Create Coupon Template",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"createdCouponName\", `Postman Regression Coupon ${Date.now()}`);",
+                  "pm.environment.unset(\"createdCouponTemplateId\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{merchantToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{createdCouponName}}\",\n  \"source\": 0,\n  \"target\": 1,\n  \"type\": 0,\n  \"validStartTime\": \"2026-04-01 00:00:00\",\n  \"validEndTime\": \"2026-12-31 23:59:59\",\n  \"stock\": 20,\n  \"receiveRule\": \"{\\\"limitPerPerson\\\":1,\\\"usageInstructions\\\":\\\"Postman regression coupon\\\",\\\"distributionMode\\\":\\\"RECEIVE\\\",\\\"applicableMerchantScope\\\":\\\"SPECIFIED\\\",\\\"applicableShopNumbers\\\":\\\"{{shopNumber}}\\\"}\",\n  \"consumeRule\": \"{\\\"termsOfUse\\\":0,\\\"thresholdAmount\\\":0,\\\"maximumDiscountAmount\\\":5.00,\\\"maxDiscountAmount\\\":5.00,\\\"discountAmount\\\":5.00,\\\"explanationOfUnmetConditions\\\":\\\"order unavailable\\\"}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/coupon-template/save"
+          }
+        },
+        {
+          "name": "Query Created Coupon Template",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"coupon template page has records\", () => pm.expect(json.data.records).to.be.an(\"array\").and.not.empty);",
+                  "const idFromText = (pm.response.text().match(/\\\"id\\\"\\s*:\\s*\\\"?(\\d{10,})\\\"?/) || [])[1];",
+                  "pm.environment.set(\"createdCouponTemplateId\", idFromText || pm.environment.get(\"seedCouponTemplateId\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{merchantToken}}"
+              }
+            ],
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/coupon-template/page?current=1&size=10&name={{createdCouponName}}&source=0"
+          }
+        },
+        {
+          "name": "Get Coupon Template Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"coupon template detail has key fields\", () => {",
+                  "  pm.expect(json.data.id).to.exist;",
+                  "  pm.expect(json.data.name).to.be.a(\"string\").and.not.empty;",
+                  "  pm.expect(json.data.stock).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{merchantToken}}"
+              }
+            ],
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/coupon-template/find?couponTemplateId={{createdCouponTemplateId}}"
+          }
+        },
+        {
+          "name": "Increase Coupon Template Stock",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{merchantToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"couponTemplateId\": \"{{createdCouponTemplateId}}\",\n  \"number\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{merchantAdminBaseUrl}}/api/merchant-admin/coupon-template/increase-number"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Coupon Center",
+      "item": [
+        {
+          "name": "Page Available Coupon Templates",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"coupon center page returns records\", () => {",
+                  "  pm.expect(json.data.records).to.be.an(\"array\");",
+                  "  pm.expect(json.data).to.have.property(\"total\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-Username",
+                "value": "{{customerUsername}}"
+              },
+              {
+                "key": "X-Shop-Number",
+                "value": "{{shopNumber}}"
+              }
+            ],
+            "url": "{{engineBaseUrl}}/api/engine/coupon-template/page?current=1&size=10&shopNumber={{shopNumber}}"
+          }
+        },
+        {
+          "name": "Redeem Coupon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-Username",
+                "value": "{{customerUsername}}"
+              },
+              {
+                "key": "X-Shop-Number",
+                "value": "{{shopNumber}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"source\": 0,\n  \"shopNumber\": \"{{shopNumber}}\",\n  \"couponTemplateId\": \"{{createdCouponTemplateId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{engineBaseUrl}}/api/engine/user-coupon/redeem"
+          }
+        },
+        {
+          "name": "Query User Coupons",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"user coupon page has records array\", () => pm.expect(json.data.records).to.be.an(\"array\"));",
+                  "const templateId = (pm.response.text().match(/\\\"couponTemplateId\\\"\\s*:\\s*\\\"?(\\d{10,})\\\"?/) || [])[1];",
+                  "pm.environment.set(\"applyCouponTemplateId\", templateId || pm.environment.get(\"seedApplyCouponTemplateId\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-Username",
+                "value": "{{customerUsername}}"
+              },
+              {
+                "key": "X-Shop-Number",
+                "value": "{{shopNumber}}"
+              }
+            ],
+            "url": "{{engineBaseUrl}}/api/engine/user-coupon/page?current=1&size=10&status=0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "item": [
+        {
+          "name": "Add Seed Goods To Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-Username",
+                "value": "{{customerUsername}}"
+              },
+              {
+                "key": "X-Shop-Number",
+                "value": "{{shopNumber}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"goodsId\": {{seedGoodsId}},\n  \"shopNumber\": {{shopNumber}},\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{engineBaseUrl}}/api/engine/cart/add"
+          }
+        },
+        {
+          "name": "Get Cart Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"cart summary has items and totals\", () => {",
+                  "  pm.expect(json.data.items).to.be.an(\"array\");",
+                  "  pm.expect(json.data).to.have.property(\"totalCount\");",
+                  "  pm.expect(json.data).to.have.property(\"payableAmount\");",
+                  "});",
+                  "const idFromText = (pm.response.text().match(/\\\"items\\\"\\s*:\\s*\\[[\\s\\S]*?\\\"id\\\"\\s*:\\s*\\\"?(\\d{5,})\\\"?/) || [])[1];",
+                  "if (idFromText) {",
+                  "  pm.environment.set(\"cartId\", idFromText);",
+                  "} else if (json.data.items.length > 0) {",
+                  "  pm.environment.set(\"cartId\", String(json.data.items[0].id || pm.environment.get(\"seedCartId\")));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-Username",
+                "value": "{{customerUsername}}"
+              },
+              {
+                "key": "X-Shop-Number",
+                "value": "{{shopNumber}}"
+              }
+            ],
+            "url": "{{engineBaseUrl}}/api/engine/cart/summary"
+          }
+        },
+        {
+          "name": "Update Cart Quantity",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-Username",
+                "value": "{{customerUsername}}"
+              },
+              {
+                "key": "X-Shop-Number",
+                "value": "{{shopNumber}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cartId\": {{cartId}},\n  \"quantity\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{engineBaseUrl}}/api/engine/cart/update-quantity"
+          }
+        },
+        {
+          "name": "Select Cart Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-Username",
+                "value": "{{customerUsername}}"
+              },
+              {
+                "key": "X-Shop-Number",
+                "value": "{{shopNumber}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cartIds\": [{{cartId}}],\n  \"selected\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{engineBaseUrl}}/api/engine/cart/select"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settlement",
+      "item": [
+        {
+          "name": "Query Available Coupons",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"business code is success\", () => pm.expect(String(json.code)).to.eql(pm.environment.get(\"successCode\")));",
+                  "pm.test(\"coupon query returns available and unavailable lists\", () => {",
+                  "  pm.expect(json.data.availableCoupons).to.be.an(\"array\");",
+                  "  pm.expect(json.data.notAvailableCoupons).to.be.an(\"array\");",
+                  "});",
+                  "if (json.data.availableCoupons.length > 0) {",
+                  "  pm.environment.set(\"applyCouponTemplateId\", String(json.data.availableCoupons[0].id));",
+                  "} else {",
+                  "  pm.environment.set(\"applyCouponTemplateId\", pm.environment.get(\"seedApplyCouponTemplateId\"));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-Username",
+                "value": "{{customerUsername}}"
+              },
+              {
+                "key": "X-Shop-Number",
+                "value": "{{shopNumber}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{customerUserId}},\n  \"orderAmount\": {{seedOrderAmount}},\n  \"shopNumber\": \"{{shopNumber}}\",\n  \"goodsList\": [\n    {\n      \"goodsNumber\": \"{{seedGoodsNumber}}\",\n      \"goodsAmount\": 199.00\n    },\n    {\n      \"goodsNumber\": \"{{seedGoodsCode}}\",\n      \"goodsAmount\": 199.00\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{settlementBaseUrl}}/api/settlement/coupon-query"
+          }
+        },
+        {
+          "name": "Apply Coupon",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set(\"orderId\", String(Date.now()));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"apply coupon returns amount fields\", () => {",
+                  "  pm.expect(json.orderId).to.exist;",
+                  "  pm.expect(json.originalAmount).to.exist;",
+                  "  pm.expect(json.finalAmount).to.exist;",
+                  "  pm.expect(json.appliedCouponId).to.exist;",
+                  "});",
+                  "pm.test(\"final amount is not greater than original amount\", () => {",
+                  "  pm.expect(Number(json.finalAmount)).to.be.at.most(Number(json.originalAmount));",
+                  "  pm.expect(Number(json.finalAmount)).to.be.at.least(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "{{customerUserId}}"
+              },
+              {
+                "key": "X-Username",
+                "value": "{{customerUsername}}"
+              },
+              {
+                "key": "X-Shop-Number",
+                "value": "{{shopNumber}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{customerUserId}},\n  \"shopNumber\": {{shopNumber}},\n  \"orderAmount\": {{seedOrderAmount}},\n  \"orderId\": {{orderId}},\n  \"goodsList\": [\n    {\n      \"goodsNumber\": \"{{seedGoodsNumber}}\",\n      \"goodsAmount\": 199.00\n    },\n    {\n      \"goodsNumber\": \"{{seedGoodsCode}}\",\n      \"goodsAmount\": 199.00\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{settlementBaseUrl}}/api/settlement/apply-coupon/{{applyCouponTemplateId}}"
+          }
+        }
+      ]
+    }
+  ]
+}

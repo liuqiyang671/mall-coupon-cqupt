@@ -69,8 +69,13 @@
           </div>
         </div>
 
-        <div v-loading="loading" class="product-grid">
-          <article v-for="goods in goodsList" :key="`${goods.shopNumber}-${goods.id}`" class="product-card">
+        <div v-loading="loading" class="product-grid" data-testid="product-grid">
+          <article
+            v-for="goods in goodsList"
+            :key="`${goods.shopNumber}-${goods.id}`"
+            class="product-card"
+            :data-testid="`product-card-${goods.id}`"
+          >
             <button class="product-card__image" type="button" @click="openDetail(goods)">
               <img v-if="goods.mainImage" :src="goods.mainImage" :alt="goods.name" @error="onImageError" />
               <PackageOpen v-else :size="34" />
@@ -93,6 +98,7 @@
                   :icon="ShoppingCart"
                   :loading="isAdding(goods)"
                   :disabled="goods.stock <= 0"
+                  :data-testid="`add-to-cart-${goods.id}`"
                   @click="addToCart(goods)"
                 >
                   加购
@@ -172,6 +178,7 @@
             :icon="ShoppingCart"
             :loading="isAdding(selectedGoods)"
             :disabled="selectedGoods.stock <= 0"
+            :data-testid="`detail-add-to-cart-${selectedGoods.id}`"
             @click="addToCart(selectedGoods, detailQuantity)"
           >
             加入购物车

@@ -5,35 +5,38 @@ spring:
   application:
     name: oneCoupon-gateway
   cloud:
+    nacos:
+      discovery:
+        enabled: false
     gateway:
       routes:
         - id: oneCoupon-merchant-admin
-          uri: lb://oneCoupon-merchant-admin/api/merchant-admin/**
+          uri: http://localhost:10010
           predicates:
             - Path=/api/merchant-admin/**
 
         - id: oneCoupon-user-goods
-          uri: lb://oneCoupon-merchant-admin/api/user/**
+          uri: http://localhost:10010
           predicates:
             - Path=/api/user/**
 
         - id: oneCoupon-engine
-          uri: lb://oneCoupon-engine/api/engine/**
+          uri: http://localhost:10020
           predicates:
             - Path=/api/engine/**
 
         - id: oneCoupon-settlement
-          uri: lb://oneCoupon-settlement/api/settlement/**
+          uri: http://localhost:10030
           predicates:
             - Path=/api/settlement/**
 
         - id: oneCoupon-distribution
-          uri: lb://oneCoupon-distribution/api/distribution/**
+          uri: http://localhost:10040
           predicates:
             - Path=/api/distribution/**
 
         - id: oneCoupon-search
-          uri: lb://oneCoupon-search/api/search/**
+          uri: http://localhost:10050
           predicates:
             - Path=/api/search/**
 

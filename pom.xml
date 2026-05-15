@@ -53,7 +53,11 @@
         <easyexcel.version>4.0.1</easyexcel.version>
         <xxl-job.version>2.4.1</xxl-job.version>
         <rocketmq-spring-boot-starter.version>2.3.0</rocketmq-spring-boot-starter.version>
+        <rocketmq-client.version>5.2.0</rocketmq-client.version>
         <elasticsearch-spring-boot-starter.version>2.6.12</elasticsearch-spring-boot-starter.version>
+        <jacoco.version>0.8.12</jacoco.version>
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+        <jacocoArgLine></jacocoArgLine>
     </properties>
 
     <!-- 全局依赖，所有子模块都会自动继承-->
@@ -186,5 +190,51 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                    <configuration>
+                        <argLine>@{jacocoArgLine}</argLine>
+                        <excludedGroups>integration</excludedGroups>
+                        <excludes>
+                            <exclude>**/*IT.java</exclude>
+                            <exclude>**/*ITCase.java</exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <propertyName>jacocoArgLine</propertyName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

@@ -13,7 +13,7 @@
         </div>
       </div>
 
-      <div class="cart-grid">
+      <div class="cart-grid" data-testid="cart-page">
         <article class="surface-card cart-main">
           <div class="section-heading">
             <div>
@@ -55,6 +55,7 @@
                   v-for="item in cartStore.items"
                   :key="item.id"
                   class="cart-item"
+                  :data-testid="`cart-item-${item.goodsId}`"
                   :class="{
                     'cart-item--selected': item.selected === 1 && item.goodsStatus === 1,
                     'cart-item--disabled': item.goodsStatus !== 1
@@ -149,6 +150,7 @@
               type="primary"
               size="large"
               :disabled="cartStore.selectedCount === 0"
+              data-testid="checkout-button"
               @click="handleCheckout"
             >
               去结算

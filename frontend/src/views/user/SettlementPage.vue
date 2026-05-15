@@ -13,7 +13,7 @@
         </div>
       </div>
 
-      <div class="settlement-grid">
+      <div class="settlement-grid" data-testid="settlement-page">
         <article class="surface-card settlement-panel">
           <div class="section-heading">
             <div>
@@ -35,7 +35,7 @@
             </el-form-item>
             <div class="form-section-title">商品明细</div>
             <div v-for="(goods, index) in orderForm.goodsList" :key="index" class="settlement-goods-row">
-              <el-input v-model.trim="goods.goodsNumber" placeholder="商品编码" />
+              <el-input v-model.trim="goods.goodsNumber" placeholder="商品编码" :data-testid="`settlement-goods-number-${index}`" />
               <el-input-number v-model="goods.goodsAmount" :min="0" :precision="2" controls-position="right" />
               <el-button :icon="Trash2" circle :disabled="orderForm.goodsList.length === 1" @click="removeGoods(index)" />
             </div>
@@ -65,7 +65,7 @@
             show-icon
             :closable="false"
           />
-          <el-button type="primary" :loading="applying" :disabled="!selectedCoupon" @click="applyCoupon">确认使用优惠券</el-button>
+          <el-button type="primary" :loading="applying" :disabled="!selectedCoupon" data-testid="apply-coupon-button" @click="applyCoupon">确认使用优惠券</el-button>
         </article>
       </div>
 
@@ -77,7 +77,7 @@
           </div>
           <el-button :loading="querying" :icon="Search" @click="queryCoupons">查询优惠券</el-button>
         </div>
-        <el-table v-loading="querying" :data="availableCoupons" row-key="id" stripe>
+        <el-table v-loading="querying" :data="availableCoupons" row-key="id" stripe data-testid="available-coupon-table">
           <el-table-column label="优惠" min-width="150">
             <template #default="{ row }">{{ formatSettlementCoupon(row) }}</template>
           </el-table-column>

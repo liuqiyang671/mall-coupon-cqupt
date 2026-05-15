@@ -199,14 +199,18 @@ public class UserCouponServiceImpl implements UserCouponService {
                             .userCouponId(String.valueOf(userCouponDO.getId()))
                             .userId(UserContext.getUserId())
                             .build();
-                    // 发送延迟消息至 RocketMQ：
-                    // 参数 validEndTime.getTime() 告知 MQ 该消息应在优惠券失效的那一刻才投递给消费者
-                    // 消费者收到消息后，会将该券从 Redis 缓存中移除，确保用户看到的列表不含过期券
-                    SendResult sendResult = couponDelayCloseProducer.sendMessage(userCouponDelayCloseEvent, validEndTime.getTime());
-
-                    // 发送消息失败解决方案简单且高效的逻辑之一：打印日志并报警，通过日志搜集并重新投递
-                    if (ObjectUtil.notEqual(sendResult.getSendStatus().name(), "SEND_OK")) {
-                        log.warn("发送优惠券关闭延时队列失败，消息参数：{}", JSON.toJSONString(userCouponDelayCloseEvent));
+                    // 发送延迟消息至 RocketMQ，到期后消费者将该券从 Redis 缓存中移除
+                    // setDeliverTimeMs 需要绝对时间戳，但 RocketMQ 最大只支持 366 天的定时投递
+                    long maxDelayMs = 366L * 24 * 60 * 60 * 1000;
+                    long delayMs = validEndTime.getTime() - System.currentTimeMillis();
+                    long deliverTimeMs = delayMs > maxDelayMs
+                            ? System.currentTimeMillis() + maxDelayMs
+                            : validEndTime.getTime();
+                    if (delayMs > 0) {
+                        SendResult sendResult = couponDelayCloseProducer.sendMessage(userCouponDelayCloseEvent, deliverTimeMs);
+                        if (ObjectUtil.notEqual(sendResult.getSendStatus().name(), "SEND_OK")) {
+                            log.warn("发送优惠券关闭延时队列失败，消息参数：{}", JSON.toJSONString(userCouponDelayCloseEvent));
+                        }
                     }
                 }
             } catch (Exception ex) {
@@ -219,6 +223,7 @@ public class UserCouponServiceImpl implements UserCouponService {
                     log.error("用户重复领取优惠券，用户ID：{}，优惠券模板ID：{}", UserContext.getUserId(), requestParam.getCouponTemplateId());
                     throw new ServiceException("用户重复领取优惠券");
                 }
+                log.error("优惠券领取异常，用户ID：{}，优惠券模板ID：{}，异常类型：{}，异常信息：{}", UserContext.getUserId(), requestParam.getCouponTemplateId(), ex.getClass().getName(), ex.getMessage(), ex);
                 throw new ServiceException("优惠券领取异常，请稍候再试");
             }
         });
